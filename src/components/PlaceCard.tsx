@@ -188,7 +188,7 @@ export const PlaceCard = memo(function PlaceCard({ place, userLoc, route, routin
 });
 
 function MallDirectory({ mallId, shoppingList, toggleShopping, onSelect }: { mallId: string; shoppingList: string[]; toggleShopping: (id: string) => void; onSelect: (id: string) => void }) {
-  const brands = brandsByMall[mallId] || [];
+  const brands = useMemo(() => brandsByMall[mallId] || [], [mallId]);
   const inside = placesInMall[mallId] || [];
   const cats = useMemo(() => BRAND_CATEGORIES.filter((c) => brands.some((b) => b.cat === c.id)), [brands]);
   const [cat, setCat] = useState<BrandCategory | 'all'>('all');

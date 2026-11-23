@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   PanResponder,
@@ -63,11 +63,25 @@ export function Sheet({
 
   const [mounted, setMounted] = useState(open);
   const [snapIdx, setSnapIdx] = useState(0);
-  const y = useRef(new Animated.Value(H)).current; // translateY from the "fully open" position
+  const [y] = useState(() => new Animated.Value(H)); // translateY from the "fully open" position
   const yNow = useRef(H);
   const scrollY = useRef(0);
+  const dragStart = useRef(0);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useLayoutEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Opening (or new content) starts at the peek height. Adjusting state during render is the
+  // React-recommended way to reset state on a prop change.
+  const [prev, setPrev] = useState({ open, contentKey });
+  if (prev.open !== open || prev.contentKey !== contentKey) {
+    setPrev({ open, contentKey });
+    if (open) {
+      setMounted(true);
+      setSnapIdx(0);
+    }
+  }
 
   useEffect(() => {
     const id = y.addListener(({ value }) => (yNow.current = value));
@@ -83,22 +97,12 @@ export function Sheet({
     [y],
   );
 
-  // open / close
+  // close: slide out, then unmount
   useEffect(() => {
-    if (open) {
-      setMounted(true);
-      setSnapIdx(0);
-      scrollY.current = 0;
-    } else if (mounted) {
-      animateTo(fullH + 40, () => setMounted(false));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  useEffect(() => {
-    setSnapIdx(0);
     scrollY.current = 0;
-  }, [contentKey]);
+    if (!open) animateTo(fullH + 40, () => setMounted(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, contentKey]);
 
   // Follow content size / snap changes (also performs the opening slide).
   useEffect(() => {
@@ -109,11 +113,15 @@ export function Sheet({
 
   const expanded = snapIdx === snaps.length - 1;
   const state = useRef({ expanded, snaps, fullH, offsetFor, snapIdx });
-  state.current = { expanded, snaps, fullH, offsetFor, snapIdx };
+  useLayoutEffect(() => {
+    state.current = { expanded, snaps, fullH, offsetFor, snapIdx };
+  });
 
-  const pan = useMemo(() => {
-    let start = 0;
-    return PanResponder.create({
+  // Handlers only read refs when a gesture happens, never during render (the lint rule can't tell
+  // PanResponder callbacks apart from render code).
+  // eslint-disable-next-line react-hooks/refs
+  const [pan] = useState(() =>
+    PanResponder.create({
       onMoveShouldSetPanResponderCapture: (_e, g) => {
         if (Math.abs(g.dy) < 6 || Math.abs(g.dy) < Math.abs(g.dx) * 1.3) return false;
         const s = state.current;
@@ -122,10 +130,10 @@ export function Sheet({
       },
       onPanResponderGrant: () => {
         y.stopAnimation();
-        start = yNow.current;
+        dragStart.current = yNow.current;
       },
       onPanResponderMove: (_e, g) => {
-        let next = start + g.dy;
+        let next = dragStart.current + g.dy;
         if (next < 0) next = next / 3; // rubber band above full height
         y.setValue(next);
       },
@@ -151,9 +159,8 @@ export function Sheet({
         const s = state.current;
         animateTo(s.offsetFor(s.snaps[Math.min(s.snapIdx, s.snaps.length - 1)]));
       },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [y, animateTo]);
+    }),
+  );
 
   const ctx = useMemo<Ctx>(
     () => ({

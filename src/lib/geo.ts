@@ -88,9 +88,7 @@ export async function fetchRoute(points: LngLat[]): Promise<RouteResult> {
     const json = await res.json();
     const r = json.routes?.[0];
     if (r) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const steps: RouteStep[] = (r.legs || []).flatMap((leg: any) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (leg.steps || []).map((st: any) => {
           const street = st.name || st.ref || '';
           return {

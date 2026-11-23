@@ -6,7 +6,6 @@ import type { MapEvent, MapHandle } from './types';
 
 // react-native-webview's class typings don't line up with React 19.3's JSX types yet;
 // the runtime component is fine, so we type it loosely here.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const WV = WebView as unknown as ComponentType<any>;
 
 // Native (iOS / Android): MapLibre GL running inside a WebView.

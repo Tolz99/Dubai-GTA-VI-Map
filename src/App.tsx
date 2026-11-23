@@ -7,7 +7,7 @@ import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { useFonts } from 'expo-font';
 import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DriveHUD } from './components/DriveHUD';
@@ -100,7 +100,9 @@ function MapScreen({ fontsLoaded }: { fontsLoaded: boolean }) {
   // Outside drive mode, only re-render when the player moved 15 m+ (GPS jitter would otherwise
   // re-render the whole screen every second). In drive mode every fix counts.
   const guidingRef = useRef(false);
-  guidingRef.current = guiding;
+  useLayoutEffect(() => {
+    guidingRef.current = guiding;
+  });
   useEffect(() => {
     let sub: Location.LocationSubscription | null = null;
     let cancelled = false;
@@ -625,7 +627,7 @@ const EdgeTab = memo(function EdgeTab({ onPress, count, savedOnly }: { onPress: 
 
 /** Splash-coloured cover with the logo that fades once the first map frame is painted. */
 function Cover({ hidden }: { hidden: boolean }) {
-  const opacity = useRef(new Animated.Value(1)).current;
+  const [opacity] = useState(() => new Animated.Value(1));
   const [gone, setGone] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {

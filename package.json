@@ -24,6 +24,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
     "maplibre-gl": "^4.7.1",
     "typescript": "~6.0.3"
   },
@@ -35,7 +37,8 @@
     "android": "node scripts/build-map-html.mjs && expo start --android",
     "web": "node scripts/build-map-html.mjs && expo start --web",
     "typecheck": "tsc --noEmit",
-    "geocode": "NODE_USE_ENV_PROXY=1 node scripts/geocode.mjs geocode-report.json"
+    "geocode": "NODE_USE_ENV_PROXY=1 node scripts/geocode.mjs geocode-report.json",
+    "lint": "expo lint"
   },
   "private": true
 }

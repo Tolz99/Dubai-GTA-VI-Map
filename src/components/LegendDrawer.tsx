@@ -1,8 +1,8 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Image, PanResponder, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ALL_PLACES, BRAND_CATEGORIES, BRANDS, MISSIONS, PLACE_CATEGORIES, STATS, placeCat, type BrandCategory, type PlaceCategory } from '../data';
-import { distanceKm, fmtKm } from '../lib/geo';
+import { fmtKm } from '../lib/geo';
 import { searchPlaces } from '../lib/search';
 import type { Focus } from '../state/store';
 import { colors, fonts, radius } from '../theme/theme';
@@ -49,21 +49,24 @@ export const LegendDrawer = memo(function LegendDrawer(p: Props) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const w = Math.min(360, width * 0.88);
-  const x = useRef(new Animated.Value(-w)).current;
+  const [x] = useState(() => new Animated.Value(-w));
   const [mounted, setMounted] = useState(p.open);
+  if (p.open && !mounted) setMounted(true);
   const onClose = useRef(p.onClose);
-  onClose.current = p.onClose;
+  useLayoutEffect(() => {
+    onClose.current = p.onClose;
+  });
 
   useEffect(() => {
-    if (p.open) setMounted(true);
     Animated.spring(x, { toValue: p.open ? 0 : -w, useNativeDriver: true, damping: 30, stiffness: 300, mass: 0.9 }).start(({ finished }) => {
       if (finished && !p.open) setMounted(false);
     });
   }, [p.open, w, x]);
 
-  // Swipe left to close.
+  // Swipe left to close. (Handlers run on gestures only; the lint rule can't tell.)
   const pan = useMemo(
     () =>
+      // eslint-disable-next-line react-hooks/refs
       PanResponder.create({
         onMoveShouldSetPanResponderCapture: (_e, g) => g.dx < -10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
         onPanResponderMove: (_e, g) => x.setValue(Math.min(0, g.dx)),

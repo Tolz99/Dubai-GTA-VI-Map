@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Animated, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ALL_PLACES, brandCat, placeById, placeCat, type Place } from '../data';
@@ -21,7 +21,7 @@ const FEATURED = ALL_PLACES.filter((p) => p.featured);
 export const SearchOverlay = memo(function SearchOverlay({ onClose, onPlace, onBrand, favs, userLoc }: Props) {
   const insets = useSafeAreaInsets();
   const [q, setQ] = useState('');
-  const fade = useRef(new Animated.Value(0)).current;
+  const [fade] = useState(() => new Animated.Value(0));
   useEffect(() => {
     Animated.timing(fade, { toValue: 1, duration: 160, useNativeDriver: true }).start();
   }, [fade]);

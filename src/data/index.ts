@@ -1,5 +1,5 @@
 import { BRANDS } from './brands';
-import { BRAND_CATEGORIES, PLACE_CATEGORIES, brandCat, placeCat } from './categories';
+import { brandCat, placeCat } from './categories';
 import { MALLS } from './malls';
 import { MISSIONS } from './missions';
 import { PLACES } from './places';
@@ -40,4 +40,3 @@ export const STATS = {
   missions: MISSIONS.length,
 };
 
-export { BRAND_CATEGORIES, PLACE_CATEGORIES, brandCat, placeCat };

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fmtKm, fmtMin } from '../lib/geo';
@@ -8,7 +9,13 @@ import { Button, Glyph, H, T } from './ui';
 /** Turn-by-turn heads-up display (phone). Mirrors what a CarPlay maneuver panel shows. */
 export function DriveHUD({ g, destination, onEnd }: { g: Guidance; destination: string; onEnd: () => void }) {
   const insets = useSafeAreaInsets();
-  const eta = new Date(Date.now() + g.remainingSec * 1000);
+  // Clock for the ETA, ticking every 30 s (render stays pure).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  const eta = new Date(now + g.remainingSec * 1000);
   const etaStr = `${eta.getHours().toString().padStart(2, '0')}:${eta.getMinutes().toString().padStart(2, '0')}`;
   return (
     <>
