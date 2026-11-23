@@ -92,6 +92,9 @@ export const PLACES: Place[] = [
   { id: 'palm-west-beach', name: 'West Beach, Palm Jumeirah', cat: 'beach', area: 'Palm Jumeirah', lat: 25.10678, lng: 55.14373,
     blurb: 'Beach clubs and sunset spots along the Palm’s trunk, looking at the Marina skyline.', tags: ['Beach clubs', 'Sunset'] },
 
+  { id: 'zero-gravity', name: 'Zero Gravity', cat: 'beach', area: 'Dubai Marina', lat: 25.08929, lng: 55.13770,
+    blurb: 'Beach club next to the Skydive Dubai drop zone. Pool, sand and skydivers landing overhead.', tags: ['Beach club', 'Pool', 'Skydivers'] },
+
   // ═════════════ PARKS & NATURE ═════════════
   { id: 'miracle-garden', name: 'Dubai Miracle Garden', cat: 'park', area: 'Dubailand', lat: 25.06020, lng: 55.24420, featured: true,
     blurb: '150 million flowers shaped into castles, hearts and a full-size Airbus A380. Seasonal (Nov–May).', tags: ['Seasonal', 'Flowers', 'A380'] },
@@ -116,6 +119,19 @@ export const PLACES: Place[] = [
   { id: 'al-barsha-pond', name: 'Al Barsha Pond Park', cat: 'park', area: 'Al Barsha 2', lat: 25.10125, lng: 55.20282,
     blurb: 'Favourite running loop and outdoor gym around a lake.', tags: ['Running', 'Outdoor gym'] },
 
+  { id: 'jlt-park', name: 'JLT Park', cat: 'park', area: 'JLT', lat: 25.07485, lng: 55.14631,
+    blurb: 'Green strip between the JLT lakes and towers. Running loop, play areas and lakeside cafés.', tags: ['Running loop', 'Lakes'] },
+  { id: 'burj-park', name: 'Burj Park', cat: 'park', area: 'Downtown Dubai', lat: 25.19417, lng: 55.27339,
+    blurb: 'Lawn at the foot of Burj Khalifa used for New Year’s Eve and events. Front-row Fountain views.', tags: ['Burj Khalifa', 'Events', 'NYE'] },
+  { id: 'umm-suqeim-park', name: 'Umm Suqeim Park', cat: 'park', area: 'Umm Suqeim 3', lat: 25.14787, lng: 55.19574,
+    blurb: 'Quiet neighbourhood park a few streets back from Sunset Beach.', tags: ['Family', 'Quiet'] },
+  { id: 'dubai-hills-park', name: 'Dubai Hills Park', cat: 'park', area: 'Dubai Hills Estate', lat: 25.10632, lng: 55.24354,
+    blurb: 'Large modern park with sports courts, a skatepark, running tracks and dog areas.', tags: ['Skatepark', 'Running', 'Dogs'] },
+  { id: 'al-quoz-pond-park', name: 'Al Quoz Pond Park', cat: 'park', area: 'Al Quoz', lat: 25.16378, lng: 55.26647,
+    blurb: 'Pond and walking loop tucked between Al Quoz and Business Bay.', tags: ['Pond', 'Walking loop'] },
+  { id: 'rashidiya-park', name: 'Al Rashidiya Park', cat: 'park', area: 'Al Rashidiya', lat: 25.22826, lng: 55.39470,
+    blurb: 'Big shady family park near the airport end of the Red Line.', tags: ['Family', 'BBQ'] },
+
   // ═════════════ SOUKS & HERITAGE ═════════════
   { id: 'gold-souk', name: 'Dubai Gold Souk', cat: 'souk', area: 'Deira', lat: 25.27030, lng: 55.29700, featured: true,
     blurb: '300+ jewellers glittering under a covered arcade. Haggling expected. Home of the world’s largest gold ring.', tags: ['Gold', 'Haggle'] },
@@ -136,6 +152,9 @@ export const PLACES: Place[] = [
   { id: 'hatta-heritage', name: 'Hatta Heritage Village', cat: 'souk', area: 'Hatta', lat: 24.79592, lng: 56.11918,
     blurb: 'Restored mountain village with a fort, watchtowers and old falaj irrigation.', tags: ['Fort', 'Mountains'] },
 
+  { id: 'souk-al-bahar', name: 'Souk Al Bahar', cat: 'souk', area: 'Downtown Dubai', lat: 25.19477, lng: 55.27701,
+    blurb: 'Arabesque souk on Burj Lake across the bridge from Dubai Mall. Lantern shops and lakeside terraces.', tags: ['Fountain view', 'Lanterns', 'Terraces'] },
+
   // ═════════════ MUSEUMS & CULTURE ═════════════
   { id: 'etihad-museum', name: 'Etihad Museum', cat: 'culture', area: 'Jumeirah 1', lat: 25.24010, lng: 55.27250,
     blurb: 'Where the UAE was born in 1971 — interactive museum on the union.', tags: ['UAE history'] },
@@ -151,6 +170,13 @@ export const PLACES: Place[] = [
     blurb: 'Immersive digital art exhibitions projected floor-to-ceiling inside Dubai Mall.', tags: ['Immersive', 'Inside Dubai Mall'] },
   { id: 'qoa', name: 'Quranic Park', cat: 'culture', area: 'Al Khawaneej', lat: 25.23959, lng: 55.47292,
     blurb: 'Gardens of plants mentioned in the Quran, a glass house and the Cave of Miracles.', tags: ['Gardens', 'Glass house'] },
+
+  { id: 'coffee-museum', name: 'Coffee Museum', cat: 'culture', area: 'Al Fahidi', lat: 25.26371, lng: 55.30010,
+    blurb: 'Small museum in Al Fahidi on coffee’s history in the Arab world, with a traditional roast to try.', tags: ['Al Fahidi', 'Tasting'] },
+  { id: 'womens-museum', name: 'Women’s Museum (Bait Al Banat)', cat: 'culture', area: 'Deira', lat: 25.27182, lng: 55.29870,
+    blurb: 'Museum by the Gold Souk telling the stories of Emirati women through history.', tags: ['History', 'Near Gold Souk'] },
+  { id: 'museum-illusions', name: 'Museum of Illusions', cat: 'culture', area: 'Al Seef', lat: 25.26446, lng: 55.30386,
+    blurb: 'Hands-on optical illusion rooms at Al Seef. Great for photos and kids.', tags: ['Kids', 'Photos'] },
 
   // ═════════════ RESTAURANTS ═════════════
   { id: 'al-ustad', name: 'Al Ustad Special Kebab', cat: 'food', area: 'Al Fahidi', lat: 25.25660, lng: 55.29580, price: 1, featured: true,
@@ -218,6 +244,52 @@ export const PLACES: Place[] = [
   { id: 'ce-la-vi', name: 'CÉ LA VI', cat: 'food', area: 'Downtown Dubai', lat: 25.20120, lng: 55.27020, price: 4,
     blurb: 'Sky-high terrace on the 54th floor of Address Sky View with Burj Khalifa in your face.', tags: ['Rooftop', 'View'] },
 
+  // Added Nov 2026 — coordinates checked against OpenStreetMap
+  { id: 'fat-sandwich', name: 'Fat Sandwich', cat: 'food', area: 'JVC', lat: 25.05714, lng: 55.20609, featured: true, price: 2, hours: [10, 25],
+    blurb: 'Overstuffed deli subs on Dutch Crunch tiger bread baked fresh daily. Started at Alserkal Avenue, now at Samer Park in JVC. Open late.', tags: ['Subs', 'Tiger bread', 'Samer Park', 'Open till 1am', 'Delivery'] },
+  { id: 'time-out-market', name: 'Time Out Market Dubai', cat: 'food', area: 'Downtown Dubai', lat: 25.19500, lng: 55.27641, price: 2,
+    blurb: 'Food hall in Souk Al Bahar with stalls from some of the city’s best-known kitchens and a terrace facing the Fountain.', tags: ['Food hall', 'Fountain view', 'Groups'] },
+  { id: 'thiptara', name: 'Thiptara', cat: 'food', area: 'Downtown Dubai', lat: 25.19433, lng: 55.27511, price: 4,
+    blurb: 'Thai restaurant in a wooden pavilion on Burj Lake at Palace Downtown. Book a table for the Fountain show.', tags: ['Thai', 'Lake view', 'Date night'] },
+  { id: 'karak-house', name: 'Karak House', cat: 'food', area: 'Downtown Dubai', lat: 25.19100, lng: 55.27670, price: 2,
+    blurb: 'Modern Emirati comfort food: karak tea, chips oman paratha and saffron pancakes.', tags: ['Emirati', 'Karak', 'Breakfast'] },
+  { id: 'prime68', name: 'Prime68', cat: 'food', area: 'Business Bay', lat: 25.18526, lng: 55.25773, price: 4,
+    blurb: 'Steakhouse on level 68 of JW Marriott Marquis with a skyline view across to Burj Khalifa.', tags: ['Steak', 'Level 68', 'Skyline'] },
+  { id: 'clap', name: 'CLAP', cat: 'food', area: 'DIFC', lat: 25.21451, lng: 55.28255, price: 4,
+    blurb: 'Japanese restaurant and rooftop terrace in DIFC, known for its late-night scene.', tags: ['Japanese', 'Terrace', 'Late night'] },
+  { id: 'al-safadi', name: 'Al Safadi (Sheikh Zayed Rd)', cat: 'food', area: 'Trade Centre', lat: 25.20755, lng: 55.27368, price: 2,
+    blurb: 'Lebanese grill institution: mixed grills, hot mezze and fresh bread at fair prices.', tags: ['Lebanese', 'Grill', 'Family'] },
+  { id: 'reif', name: 'Reif Japanese Kushiyaki', cat: 'food', area: 'Al Wasl', lat: 25.19382, lng: 55.24523, price: 2,
+    blurb: 'Casual Japanese skewers and sandos from chef Reif Othman. A local favourite.', tags: ['Japanese', 'Skewers', 'Casual'] },
+  { id: 'barasti', name: 'Barasti', cat: 'food', area: 'Dubai Marina', lat: 25.09177, lng: 55.14581, price: 3,
+    blurb: 'Long-running beach bar at Le Méridien Mina Seyahi. Sunset drinks, sports on the big screens, sand under the tables.', tags: ['Beach bar', 'Sunset', 'Sports'] },
+  { id: 'asia-asia', name: 'Asia Asia', cat: 'food', area: 'Dubai Marina', lat: 25.07629, lng: 55.13889, price: 3,
+    blurb: 'Pan-Asian dining and terrace on Pier 7 overlooking the marina towers.', tags: ['Pan-Asian', 'Pier 7', 'Marina view'] },
+  { id: 'bistro-des-arts', name: 'Bistro des Arts', cat: 'food', area: 'Dubai Marina', lat: 25.07756, lng: 55.14066, price: 3,
+    blurb: 'French bistro classics on Marina Walk with a waterfront terrace.', tags: ['French', 'Terrace', 'Marina Walk'] },
+  { id: 'ibn-albahr', name: 'Ibn AlBahr', cat: 'food', area: 'Palm Jumeirah', lat: 25.11517, lng: 55.14263, price: 3,
+    blurb: 'Pick-your-fish Lebanese seafood by the water on the Palm’s shoreline.', tags: ['Seafood', 'Lebanese', 'Waterfront'] },
+  { id: 'al-mahara', name: 'Al Mahara', cat: 'food', area: 'Burj Al Arab', lat: 25.14113, lng: 55.18539, price: 4,
+    blurb: 'Seafood fine dining inside Burj Al Arab around a floor-to-ceiling aquarium.', tags: ['Seafood', 'Aquarium', 'Splurge'] },
+  { id: 'shimmers', name: 'Shimmers', cat: 'food', area: 'Madinat Jumeirah', lat: 25.13507, lng: 55.18424, price: 3,
+    blurb: 'Greek-style beach restaurant on Madinat Jumeirah’s sand with Burj Al Arab in view.', tags: ['Greek', 'Beach', 'Burj Al Arab view'] },
+  { id: 'allo-beirut', name: 'Allo Beirut', cat: 'food', area: 'Barsha Heights', lat: 25.09443, lng: 55.18465, price: 1,
+    blurb: 'Late-night Lebanese street food: shawarma, manakish and fresh juices.', tags: ['Shawarma', 'Late night', 'Cheap eats'] },
+  { id: 'bayt-al-wakeel', name: 'Bayt Al Wakeel', cat: 'food', area: 'Bur Dubai', lat: 25.26479, lng: 55.29402, price: 2,
+    blurb: 'Restaurant in a historic 1930s building with a deck right on the Creek next to the textile souk.', tags: ['Creekside', 'Heritage building', 'Seafood'] },
+  { id: 'al-tawasol', name: 'Al Tawasol', cat: 'food', area: 'Al Muraqqabat, Deira', lat: 25.26064, lng: 55.32727, price: 1,
+    blurb: 'Yemeni mandi and madfoon eaten on floor cushions. Big shared platters.', tags: ['Yemeni', 'Mandi', 'Floor seating'] },
+  { id: 'aroos-damascus', name: 'Aroos Damascus', cat: 'food', area: 'Al Muraqqabat, Deira', lat: 25.26787, lng: 55.32089, price: 1,
+    blurb: 'Long-running, always-busy Syrian restaurant: shawarma, grills and fatteh until late.', tags: ['Syrian', 'Shawarma', 'Late night'] },
+  { id: 'xiao-wei-yang', name: 'Xiao Wei Yang', cat: 'food', area: 'Deira', lat: 25.27067, lng: 55.32083, price: 2,
+    blurb: 'Mongolian hot pot in Deira. Pick your broths and cook at the table.', tags: ['Hot pot', 'Chinese', 'Groups'] },
+  { id: 'afghan-khorasan', name: 'Afghan Khorasan Kabab', cat: 'food', area: 'Naif, Deira', lat: 25.27120, lng: 55.30427, price: 1,
+    blurb: 'Back-street Deira kebab house: lamb kebabs, Kabuli pulao and bread straight from the oven.', tags: ['Afghan', 'Kebab', 'Cheap eats'] },
+  { id: 'saravana-bhavan', name: 'Saravana Bhavan (Karama)', cat: 'food', area: 'Karama', lat: 25.24238, lng: 55.30586, price: 1,
+    blurb: 'South Indian vegetarian classics: dosa, idli and thali in the heart of Karama.', tags: ['South Indian', 'Vegetarian', 'Cheap eats'] },
+  { id: 'al-reef-bakery', name: 'Al Reef Lebanese Bakery', cat: 'food', area: 'Karama', lat: 25.24623, lng: 55.30763, price: 1,
+    blurb: 'Karama’s famous Lebanese bakery for za’atar and cheese manakish straight from the oven.', tags: ['Manakish', 'Open late', 'Cheap eats'] },
+
   // ═════════════ CAFÉS & DESSERTS ═════════════
   { id: 'espresso-lab', name: 'The Espresso Lab', cat: 'cafe', area: 'd3', lat: 25.18750, lng: 55.29700, price: 2,
     blurb: 'Specialty-coffee lab with an obsessive approach to beans.', tags: ['Specialty coffee'] },
@@ -239,6 +311,19 @@ export const PLACES: Place[] = [
     blurb: 'Plated dessert bar — the go-to for date-night sweets.', tags: ['Desserts'] },
   { id: 'luqaimat-kite', name: 'Luqaimat stop — Kite Beach', cat: 'cafe', area: 'Kite Beach', lat: 25.15740, lng: 55.20450, price: 1,
     blurb: 'Golden Emirati dumplings drizzled with date syrup from the beach trucks.', tags: ['Emirati', 'Street sweets'] },
+
+  { id: 'nightjar', name: 'Nightjar Coffee Roasters', cat: 'cafe', area: 'Alserkal Avenue', lat: 25.14274, lng: 55.22487,
+    blurb: 'Specialty roastery inside Alserkal Avenue. Cold brew and single origins between gallery visits.', tags: ['Specialty coffee', 'Roastery'] },
+  { id: 'wild-moon', name: 'Wild & The Moon', cat: 'cafe', area: 'Alserkal Avenue', lat: 25.14272, lng: 55.22466,
+    blurb: 'Plant-based café with juices, bowls and raw desserts.', tags: ['Vegan', 'Healthy'] },
+  { id: 'comptoir-102', name: 'Comptoir 102', cat: 'cafe', area: 'Jumeirah 1', lat: 25.22608, lng: 55.25853,
+    blurb: 'Garden café and concept store on Jumeirah Beach Road. Healthy plates and a calm courtyard.', tags: ['Healthy', 'Concept store', 'Garden'] },
+  { id: 'sum-of-us', name: 'The Sum of Us', cat: 'cafe', area: 'Trade Centre', lat: 25.22974, lng: 55.28603,
+    blurb: 'All-day café and roastery with sourdough baked in-house.', tags: ['Brunch', 'Sourdough', 'Roastery'] },
+  { id: 'saddle', name: 'Saddle', cat: 'cafe', area: 'BOXPARK', lat: 25.20486, lng: 55.25270,
+    blurb: 'Bike-themed café at BOXPARK. Coffee, brunch and acai bowls after a ride.', tags: ['Brunch', 'Cyclists'] },
+  { id: 'arabian-tea-house-j2', name: 'Arabian Tea House (Jumeirah)', cat: 'cafe', area: 'Jumeirah 2', lat: 25.19848, lng: 55.24158,
+    blurb: 'Jumeirah branch of the Al Fahidi favourite: Emirati breakfast and karak in a white courtyard.', tags: ['Emirati breakfast', 'Courtyard'] },
 
   // ═════════════ ICONIC HOTELS ═════════════
   { id: 'atlantis-palm', name: 'Atlantis, The Palm', cat: 'hotel', area: 'Palm Jumeirah', lat: 25.13295, lng: 55.11867, featured: true,

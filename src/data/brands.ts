@@ -170,7 +170,8 @@ export const BRANDS: Brand[] = [
   b('Bose', 'tech', 'DM MOE'),
   b('Emax', 'tech', 'IBN MCC ARAB'),
   b('Geekay Games', 'tech', 'DM MOE MCC'),
-  b('Carrefour Hypermarket', 'home', 'MOE MCC DCC BJ ARAB'),
+  b('Carrefour Hypermarket', 'home', 'MOE MCC DCC BJ ARAB MCCM SILICON'),
+  b('LuLu Hypermarket', 'home', 'FPJ SILICON'),
 
   // ───────────── HOME & LIFESTYLE ─────────────
   b('IKEA', 'home', 'DFC FPJ'),
@@ -188,8 +189,8 @@ export const BRANDS: Brand[] = [
   b('Toys R Us', 'home', 'MCC DCC DFC'),
   b('LEGO Store', 'home', 'DM MOE'),
   b('Dragon Mart Traders', 'home', 'DRAG'),
-  b('Waitrose', 'home', 'DM DMM SPRINGS GALL'),
-  b('Spinneys', 'home', 'DHM MERC'),
+  b('Waitrose', 'home', 'DM DMM SPRINGS GALL M35'),
+  b('Spinneys', 'home', 'DHM MERC FAM'),
 
   // ───────────── FOOD CHAINS ─────────────
   b('Shake Shack', 'foodchain', 'DM MOE MCC DHM CW BEACH DFC'),

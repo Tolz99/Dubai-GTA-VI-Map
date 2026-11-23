@@ -12,6 +12,11 @@ export interface Place {
   /** 1 = cheap eats … 4 = splurge */
   price?: 1 | 2 | 3 | 4;
   featured?: boolean;
+  /**
+   * Opening hours in Dubai time as [open, close] hours, same every day.
+   * close > 24 means past midnight (e.g. [10, 25] = 10:00–01:00). Only set when verified.
+   */
+  hours?: [number, number];
   /** If this place sits inside a mall (id of that mall). */
   inMall?: string;
 }
