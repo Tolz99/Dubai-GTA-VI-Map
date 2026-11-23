@@ -1,55 +1,61 @@
-import { Anton_400Regular } from '@expo-google-fonts/anton/400Regular';
-import { Rajdhani_500Medium } from '@expo-google-fonts/rajdhani/500Medium';
-import { Rajdhani_600SemiBold } from '@expo-google-fonts/rajdhani/600SemiBold';
-import { Rajdhani_700Bold } from '@expo-google-fonts/rajdhani/700Bold';
+import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
+import { BarlowCondensed_800ExtraBold_Italic } from '@expo-google-fonts/barlow-condensed/800ExtraBold_Italic';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { useFonts } from 'expo-font';
 import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DriveHUD } from './components/DriveHUD';
 import { LegendDrawer, type LegendTab } from './components/LegendDrawer';
 import { MissionPanel } from './components/MissionPanel';
 import { PlaceCard } from './components/PlaceCard';
 import { SearchOverlay } from './components/SearchOverlay';
 import { Sheet } from './components/Sheet';
 import { ShoppingPanel } from './components/ShoppingPanel';
-import { Body, Display, Glyph, RoundButton, SunsetBar, tap } from './components/ui';
-import {
-  ALL_PLACES,
-  BRAND_CATEGORIES,
-  BRANDS,
-  ICON_PATHS,
-  MALLS,
-  MISSIONS,
-  PLACE_CATEGORIES,
-  brandById,
-  brandCat,
-  placeById,
-  placeCat,
-  type PlaceCategory,
-} from './data';
+import { Glyph, MapButton, T, tap } from './components/ui';
+import { ALL_PLACES, BRAND_CATEGORIES, BRANDS, ICON_PATHS, MALLS, MISSIONS, PLACE_CATEGORIES, brandById, brandCat, placeById, type PlaceCategory } from './data';
 import { distanceKm, fetchRoute, type LngLat, type RouteResult } from './lib/geo';
+import { startGuidance, updateGuidance, type Guidance } from './lib/guidance';
 import { FULL, PARTIAL, rankMalls } from './lib/shopping';
 import { NeonMap } from './map/NeonMap';
 import type { HighlightItem, MapEvent, MapHandle } from './map/types';
 import { usePersistent, type Focus } from './state/store';
-import { APP_NAME, APP_TAGLINE, colors } from './theme/theme';
+import { colors, radius } from './theme/theme';
 
 const DOWNTOWN = { lat: 25.1972, lng: 55.2744 };
 type SheetKind = 'place' | 'shop' | 'mission' | null;
 
 export default function App() {
-  const [fontsLoaded] = useFonts({ Anton_400Regular, Rajdhani_500Medium, Rajdhani_600SemiBold, Rajdhani_700Bold });
+  const [fontsLoaded] = useFonts({
+    BarlowCondensed_700Bold,
+    BarlowCondensed_800ExtraBold_Italic,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <View style={{ flex: 1, backgroundColor: colors.ink }}>{fontsLoaded ? <Game /> : null}</View>
+      <View style={{ flex: 1, backgroundColor: colors.ink }}>{fontsLoaded ? <MapScreen /> : null}</View>
     </SafeAreaProvider>
   );
 }
 
-function Game() {
+/** Objective line in the style of a game subtitle: white text, one coloured keyword. */
+interface Objective {
+  before: string;
+  key: string;
+  after: string;
+  color: string;
+}
+
+function MapScreen() {
   const insets = useSafeAreaInsets();
   const map = useRef<MapHandle>(null);
   const [ready, setReady] = useState(false);
@@ -66,9 +72,10 @@ function Game() {
   const [legendTab, setLegendTab] = useState<LegendTab>('map');
   const [search, setSearch] = useState(false);
   const [tilt, setTilt] = useState(false);
-  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number; heading: number | null } | null>(null);
   const [route, setRoute] = useState<(RouteResult & { targetId: string }) | null>(null);
   const [routing, setRouting] = useState(false);
+  const [guidance, setGuidance] = useState<Guidance | null>(null);
 
   const post = useCallback((msg: Record<string, unknown>) => map.current?.post(msg), []);
 
@@ -80,21 +87,23 @@ function Game() {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') return;
         const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        sub = await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, distanceInterval: 25 }, (p) =>
-          setUserLoc({ lat: p.coords.latitude, lng: p.coords.longitude }),
+        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
+        sub = await Location.watchPositionAsync({ accuracy: Location.Accuracy.High, distanceInterval: 8 }, (p) =>
+          setUserLoc({ lat: p.coords.latitude, lng: p.coords.longitude, heading: p.coords.heading }),
         );
       } catch {
-        // location unavailable — app still works
+        // no location — the app still works
       }
     })();
     return () => sub?.remove();
   }, []);
 
-  // Only treat the player as "in Dubai" if they are within ~120 km.
-  const playerInDubai = userLoc && distanceKm(userLoc.lat, userLoc.lng, DOWNTOWN.lat, DOWNTOWN.lng) < 120 ? userLoc : null;
+  const playerInDubai = useMemo(
+    () => (userLoc && distanceKm(userLoc.lat, userLoc.lng, DOWNTOWN.lat, DOWNTOWN.lng) < 120 ? userLoc : null),
+    [userLoc],
+  );
 
-  // ── highlight (what glows on the map) ──
+  // ── what glows on the map ──
   const highlight = useMemo<Record<string, HighlightItem> | null>(() => {
     if (focus.kind === 'shopping') {
       if (!shoppingList.length) return null;
@@ -107,27 +116,25 @@ function Game() {
     if (focus.kind === 'brand') {
       const b = brandById[focus.id];
       if (!b) return null;
-      const c = brandCat[b.cat];
-      return Object.fromEntries(b.malls.map((m) => [m, { color: c.color, badge: b.name, icon: b.cat }]));
+      return Object.fromEntries(b.malls.map((m) => [m, { color: brandCat[b.cat].color, badge: b.name, icon: b.cat }]));
     }
     if (focus.kind === 'brandCat') {
       const c = brandCat[focus.id as keyof typeof brandCat];
       const items: Record<string, HighlightItem> = {};
       MALLS.forEach((m) => {
         const n = BRANDS.filter((b) => b.cat === focus.id && b.malls.includes(m.id)).length;
-        if (n) items[m.id] = { color: c.color, badge: `${n} ${c.short}`, icon: c.id };
+        if (n) items[m.id] = { color: c.color, badge: `${n} stores`, icon: c.id };
       });
       return items;
     }
     if (focus.kind === 'mission') {
       const m = MISSIONS.find((x) => x.id === focus.id);
-      if (!m) return null;
-      return Object.fromEntries(m.stops.map((s) => [s, { color: m.color }]));
+      return m ? Object.fromEntries(m.stops.map((s) => [s, { color: m.color }])) : null;
     }
     return null;
   }, [focus, shoppingList, playerInDubai]);
 
-  // ── sync with map ──
+  // ── keep the map in sync ──
   useEffect(() => {
     if (!ready) return;
     post({
@@ -154,6 +161,14 @@ function Game() {
     if (ready && playerInDubai) post({ type: 'me', lat: playerInDubai.lat, lng: playerInDubai.lng });
   }, [ready, playerInDubai, post]);
 
+  // ── turn-by-turn: advance on every location fix ──
+  const guiding = !!guidance;
+  useEffect(() => {
+    if (!guiding || !route || !playerInDubai) return;
+    setGuidance((g) => (g ? updateGuidance(route, g, playerInDubai.lat, playerInDubai.lng) : g));
+    post({ type: 'follow', lat: playerInDubai.lat, lng: playerInDubai.lng, bearing: playerInDubai.heading ?? undefined });
+  }, [guiding, route, playerInDubai, post]);
+
   const onEvent = useCallback((e: MapEvent) => {
     if (e.type === 'ready') setReady(true);
     else if (e.type === 'select') {
@@ -167,10 +182,7 @@ function Game() {
   }, []);
 
   // ── actions ──
-  const toggleShopping = useCallback(
-    (id: string) => setShoppingList((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id])),
-    [setShoppingList],
-  );
+  const toggleShopping = useCallback((id: string) => setShoppingList((l) => (l.includes(id) ? l.filter((x) => x !== id) : [...l, id])), [setShoppingList]);
 
   const selectPlace = useCallback((id: string) => {
     setSelected(id);
@@ -181,6 +193,8 @@ function Game() {
 
   const clearRoute = useCallback(() => {
     setRoute(null);
+    setGuidance(null);
+    post({ type: 'drive', on: false });
     post({ type: 'route', coords: null });
     post({ type: 'stops', stops: [] });
   }, [post]);
@@ -200,6 +214,23 @@ function Game() {
     post({ type: 'route', coords: r.coords, color: colors.waypoint, fit: true });
   }, [selected, playerInDubai, post]);
 
+  const startDrive = useCallback(() => {
+    if (!route) return;
+    setSheet(null);
+    setGuidance(startGuidance(route));
+    post({ type: 'drive', on: true });
+    const from = playerInDubai || DOWNTOWN;
+    post({ type: 'follow', lat: from.lat, lng: from.lng, bearing: playerInDubai?.heading ?? undefined });
+  }, [route, playerInDubai, post]);
+
+  const endDrive = useCallback(() => {
+    setGuidance(null);
+    setTilt(false);
+    post({ type: 'drive', on: false });
+    post({ type: 'tilt', on: false });
+    if (route) post({ type: 'route', coords: route.coords, color: colors.waypoint, fit: true });
+  }, [route, post]);
+
   const startMission = useCallback(
     async (id: string) => {
       const m = MISSIONS.find((x) => x.id === id)!;
@@ -217,7 +248,7 @@ function Game() {
 
   const clearFocus = useCallback(() => {
     if (focus.kind === 'mission' || route?.targetId.startsWith('mission:')) clearRoute();
-    if (focus.kind === 'shopping' && sheet === 'shop') setSheet(null);
+    if (sheet === 'shop') setSheet(null);
     setFocus({ kind: 'none' });
   }, [focus, route, clearRoute, sheet]);
 
@@ -234,163 +265,131 @@ function Game() {
     setSheet('mission');
   };
 
-  // ── objective banner ──
-  const objective = useMemo(() => {
+  // ── objective subtitle ──
+  const objective = useMemo<Objective | null>(() => {
     if (focus.kind === 'shopping') {
-      if (!shoppingList.length) return { color: colors.pink, title: 'Shopping Run', text: 'Add brands to your list.' };
+      if (!shoppingList.length) return { before: 'Add brands to your ', key: 'shopping list', after: '.', color: colors.pink };
       const r = rankMalls(shoppingList, playerInDubai);
       const full = r.filter((x) => !x.missing.length);
-      return {
-        color: full.length ? FULL : PARTIAL,
-        title: 'Shopping Run',
-        text: full.length ? `Go to ${full[0].mall.name}. ${full.length} ${full.length === 1 ? 'mall has' : 'malls have'} your full list.` : `No mall has all ${shoppingList.length}. Best: ${r[0]?.mall.name ?? '—'}.`,
-      };
+      return full.length
+        ? { before: 'Go to ', key: full[0].mall.name, after: '. It has your whole list.', color: FULL }
+        : { before: 'No mall has all of it. Start at ', key: r[0]?.mall.name ?? '—', after: '.', color: PARTIAL };
     }
     if (focus.kind === 'brand') {
       const b = brandById[focus.id];
-      const c = brandCat[b.cat];
-      const nearest = playerInDubai
-        ? [...b.malls].sort((x, y) => distanceKm(playerInDubai.lat, playerInDubai.lng, placeById[x].lat, placeById[x].lng) - distanceKm(playerInDubai.lat, playerInDubai.lng, placeById[y].lat, placeById[y].lng))[0]
+      const p = playerInDubai;
+      const nearest = p
+        ? [...b.malls].sort((x, y) => distanceKm(p.lat, p.lng, placeById[x].lat, placeById[x].lng) - distanceKm(p.lat, p.lng, placeById[y].lat, placeById[y].lng))[0]
         : null;
-      return {
-        color: c.color,
-        title: b.name,
-        text: `In ${b.malls.length} ${b.malls.length === 1 ? 'mall' : 'malls'}.${nearest ? ` Nearest: ${placeById[nearest].name}.` : ' Tap a glowing blip.'}`,
-      };
+      return nearest
+        ? { before: `${b.name} is in ${b.malls.length} malls. Nearest: `, key: placeById[nearest].name, after: '.', color: brandCat[b.cat].color }
+        : { before: 'Find ', key: b.name, after: ` in ${b.malls.length} ${b.malls.length === 1 ? 'mall' : 'malls'}.`, color: brandCat[b.cat].color };
     }
     if (focus.kind === 'brandCat') {
       const c = brandCat[focus.id as keyof typeof brandCat];
-      return { color: c.color, title: c.label, text: `${highlight ? Object.keys(highlight).length : 0} malls. Badge = number of stores.` };
+      return { before: '', key: c.label, after: ` in ${highlight ? Object.keys(highlight).length : 0} malls.`, color: c.color };
     }
     if (focus.kind === 'mission') {
       const m = MISSIONS.find((x) => x.id === focus.id)!;
       const next = m.stops.find((s) => !(missionDone[m.id] || []).includes(s));
-      return { color: m.color, title: `Mission ${m.number}: ${m.title}`, text: next ? `Go to ${placeById[next].name}.` : 'Mission passed!' };
+      return next ? { before: 'Go to ', key: placeById[next].name, after: '.', color: m.color } : { before: '', key: 'Mission passed', after: '', color: m.color };
     }
     return null;
   }, [focus, shoppingList, playerInDubai, highlight, missionDone]);
 
   const selectedPlace = selected ? placeById[selected] : null;
-  const sheetAccent =
-    sheet === 'place' && selectedPlace
-      ? placeCat[selectedPlace.cat].color
-      : sheet === 'mission' && missionId
-        ? MISSIONS.find((m) => m.id === missionId)!.color
-        : colors.pink;
+
+  const dest = !route
+    ? ''
+    : route.targetId.startsWith('mission:')
+      ? (MISSIONS.find((m) => `mission:${m.id}` === route.targetId)?.title ?? 'Mission')
+      : (placeById[route.targetId]?.name ?? '');
 
   return (
     <View style={{ flex: 1 }}>
       <NeonMap ref={map} onEvent={onEvent} />
 
-      {/* ── top HUD ── */}
+      {guidance && route ? (
+        <DriveHUD g={guidance} destination={dest} onEnd={endDrive} />
+      ) : (
+        <>
+      {/* top bar */}
       <View style={[styles.top, { paddingTop: insets.top + 6 }]} pointerEvents="box-none">
-        <View style={styles.topRow} pointerEvents="box-none">
-          <RoundButton
+        <MapButton
+          onPress={() => {
+            setLegendTab('map');
+            setDrawer(true);
+          }}
+        >
+          <Glyph icon="menu" size={20} />
+        </MapButton>
+        <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" accessibilityLabel="Dubai Maps" />
+        <View style={styles.controls}>
+          <MapButton
+            active={tilt}
             onPress={() => {
-              setLegendTab('map');
-              setDrawer(true);
+              setTilt(!tilt);
+              post({ type: 'tilt', on: !tilt });
             }}
           >
-            <Glyph icon="menu" size={22} />
-          </RoundButton>
-          <View style={styles.titleBox} pointerEvents="none">
-            <Display size={26} style={styles.titleShadow}>
-              {APP_NAME}
-            </Display>
-            <SunsetBar style={{ width: 120, marginTop: 1 }} height={2} />
-            <Body size={10} weight="bold" color={colors.textDim} style={{ letterSpacing: 2.5, marginTop: 3 }}>
-              {APP_TAGLINE}
-            </Body>
-          </View>
-          <RoundButton onPress={() => setSearch(true)}>
-            <Glyph icon="search" size={21} />
-          </RoundButton>
+            <T size={13} weight={700} color={tilt ? colors.ink : colors.text}>
+              3D
+            </T>
+          </MapButton>
+          <MapButton
+            onPress={() => {
+              if (playerInDubai) post({ type: 'flyTo', lat: playerInDubai.lat, lng: playerInDubai.lng, zoom: 15 });
+              else post({ type: 'reset' });
+            }}
+          >
+            <Glyph icon="locate" size={18} color={playerInDubai ? colors.text : colors.textDim} />
+          </MapButton>
         </View>
-
-        {objective ? (
-          <View style={[styles.objective, { borderLeftColor: objective.color }]}>
-            <View style={{ flex: 1 }}>
-              <Display size={15} color={objective.color} numberOfLines={1}>
-                {objective.title}
-              </Display>
-              <Body size={14} weight="semi" numberOfLines={2}>
-                {objective.text}
-              </Body>
-            </View>
-            <Pressable onPress={clearFocus} hitSlop={10} style={{ padding: 4 }}>
-              <Glyph icon="close" size={16} color={colors.textDim} />
-            </Pressable>
-          </View>
-        ) : null}
       </View>
 
-      {/* ── right controls ── */}
-      <View style={[styles.right, { top: insets.top + (objective ? 150 : 92) }]} pointerEvents="box-none">
-        <RoundButton
-          active={tilt}
-          onPress={() => {
-            setTilt(!tilt);
-            post({ type: 'tilt', on: !tilt });
-          }}
-        >
-          <Glyph icon="cube" size={20} color={tilt ? colors.cyan : colors.text} />
-        </RoundButton>
-        <RoundButton
-          onPress={() => {
-            if (playerInDubai) post({ type: 'flyTo', lat: playerInDubai.lat, lng: playerInDubai.lng, zoom: 14.5 });
-            else post({ type: 'reset' });
-          }}
-        >
-          <Glyph icon="locate" size={20} color={playerInDubai ? colors.cyan : colors.text} />
-        </RoundButton>
-        <RoundButton
-          onPress={() => {
-            setTilt(false);
-            post({ type: 'reset' });
-          }}
-        >
-          <Glyph icon="compass" size={20} color={colors.pink} />
-        </RoundButton>
-      </View>
-
-      {/* ── bottom bar ── */}
+      {/* objective subtitle + bottom dock */}
       {!sheet ? (
-        <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]} pointerEvents="box-none">
-          <Pressable
-            onPress={() => {
-              tap();
-              openShop();
-            }}
-            style={({ pressed }) => [styles.bigBtn, { borderColor: colors.pink }, pressed && styles.pressed]}
-          >
-            <Glyph icon="bag" size={20} color={colors.pink} />
-            <Display size={17}>Shopping Run</Display>
-            {shoppingList.length ? (
-              <View style={styles.count}>
-                <Body size={12} weight="bold" color={colors.ink}>
-                  {shoppingList.length}
-                </Body>
-              </View>
-            ) : null}
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              tap();
-              setLegendTab('missions');
-              setDrawer(true);
-            }}
-            style={({ pressed }) => [styles.bigBtn, { borderColor: colors.yellow }, pressed && styles.pressed]}
-          >
-            <Glyph icon="star" size={20} color={colors.yellow} />
-            <Display size={17}>Missions</Display>
-          </Pressable>
+        <View style={[styles.bottomWrap, { paddingBottom: insets.bottom + 10 }]} pointerEvents="box-none">
+          {objective ? (
+            <View style={styles.objectiveRow} pointerEvents="box-none">
+              <T size={16} weight={600} style={styles.objective}>
+                {objective.before}
+                <T size={16} weight={700} color={objective.color} style={styles.objective}>
+                  {objective.key}
+                </T>
+                {objective.after}
+              </T>
+              <Pressable onPress={clearFocus} hitSlop={10} style={styles.objectiveClose} accessibilityLabel="Cancel">
+                <Glyph icon="close" size={12} color={colors.text} />
+              </Pressable>
+            </View>
+          ) : null}
+          <View style={styles.dock}>
+            <Pressable onPress={() => setSearch(true)} style={({ pressed }) => [styles.search, pressed && { opacity: 0.8 }]}>
+              <Glyph icon="search" size={18} color={colors.textDim} />
+              <T size={16} weight={500} color={colors.textDim}>
+                Search Dubai
+              </T>
+            </Pressable>
+            <MapButton onPress={openShop} badge={shoppingList.length || undefined} style={styles.dockBtn}>
+              <Glyph icon="bag" size={20} color={colors.text} />
+            </MapButton>
+            <MapButton
+              onPress={() => {
+                setLegendTab('missions');
+                setDrawer(true);
+              }}
+              style={styles.dockBtn}
+            >
+              <Glyph icon="star" size={20} color={colors.text} />
+            </MapButton>
+          </View>
         </View>
       ) : null}
 
       <Sheet
         open={!!sheet}
-        accent={sheetAccent}
-        maxHeight={sheet === 'mission' ? 0.7 : 0.62}
+        maxHeight={sheet === 'mission' ? 0.72 : 0.62}
         onClose={() => {
           setSheet(null);
           setSelected(null);
@@ -406,6 +405,7 @@ function Game() {
             routing={routing}
             onWaypoint={setWaypoint}
             onClearRoute={clearRoute}
+            onDrive={startDrive}
             shoppingList={shoppingList}
             toggleShopping={toggleShopping}
             onSelect={selectPlace}
@@ -434,12 +434,14 @@ function Game() {
               })
             }
             active={focus.kind === 'mission' && focus.id === missionId}
-            route={route?.targetId === `mission:${missionId}` ? route : null}
             onStart={() => {
               setSheet(null);
               startMission(missionId);
             }}
-            onStop={clearFocus}
+            onStop={() => {
+              setSheet(null);
+              clearFocus();
+            }}
             onSelect={(pid) => post({ type: 'flyTo', lat: placeById[pid].lat, lng: placeById[pid].lng, zoom: 15, pitch: 45 })}
           />
         ) : null}
@@ -478,40 +480,32 @@ function Game() {
           }}
         />
       ) : null}
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 14 },
-  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  titleBox: { alignItems: 'center' },
-  titleShadow: { textShadowColor: 'rgba(255,61,139,0.85)', textShadowRadius: 14, textShadowOffset: { width: 0, height: 0 } },
-  objective: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-    backgroundColor: colors.panel,
-    borderLeftWidth: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 3,
-  },
-  right: { position: 'absolute', right: 14, gap: 10 },
-  bottom: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', gap: 10, paddingHorizontal: 14 },
-  bigBtn: {
+  top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  logo: { width: 112, height: 57, marginTop: -2 },
+  controls: { gap: 8 },
+  bottomWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 12 },
+  objectiveRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 16, marginBottom: 14 },
+  objective: { textAlign: 'center', flexShrink: 1, textShadowColor: 'rgba(0,0,0,0.95)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },
+  objectiveClose: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' },
+  dock: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  search: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
+    gap: 10,
+    height: 50,
+    paddingHorizontal: 16,
+    borderRadius: radius.md,
     backgroundColor: colors.panel,
-    borderWidth: 1.5,
-    borderRadius: 3,
-    transform: [{ skewX: '-8deg' }],
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
   },
-  pressed: { opacity: 0.8, transform: [{ skewX: '-8deg' }, { scale: 0.97 }] },
-  count: { backgroundColor: colors.pink, minWidth: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  dockBtn: { width: 50, height: 50 },
 });

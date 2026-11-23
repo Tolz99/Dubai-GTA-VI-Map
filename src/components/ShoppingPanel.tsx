@@ -3,8 +3,8 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 import { BRANDS, brandById, brandCat } from '../data';
 import { fmtKm } from '../lib/geo';
 import { FULL, PARTIAL, rankMalls } from '../lib/shopping';
-import { colors, fonts } from '../theme/theme';
-import { ActionButton, Body, Display, Glyph, tap } from './ui';
+import { colors, fonts, radius } from '../theme/theme';
+import { Button, Divider, Glyph, H, Label, T, tap } from './ui';
 
 const QUICK = ['zara', 'nike', 'sephora', 'apple-store', 'uniqlo', 'handm', 'bath-and-body-works', 'lululemon', 'louis-vuitton', 'ikea', 'shake-shack', 'starbucks'];
 
@@ -27,27 +27,31 @@ export function ShoppingPanel({ list, toggle, clear, userLoc, onPickMall }: Prop
   const full = results.filter((r) => r.missing.length === 0);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 18, paddingTop: 16 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-      <Body size={12} weight="bold" color={colors.pink} style={{ letterSpacing: 2 }}>
-        SIDE MISSION
-      </Body>
-      <Display size={28}>Shopping Run</Display>
-      <Body size={14} color={colors.textDim} style={{ marginTop: 2 }}>
-        Add the brands you need — we light up every mall that has them.
-      </Body>
+    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <H size={28} style={{ paddingRight: 40 }}>Shopping run</H>
+      <T size={14} color={colors.textDim} style={{ marginTop: 2 }}>
+        Add what you’re shopping for. Malls that carry it light up on the map.
+      </T>
 
-      <View style={styles.inputWrap}>
+      <View style={styles.input}>
         <Glyph icon="search" size={18} color={colors.textMute} />
         <TextInput
           value={q}
           onChangeText={setQ}
-          placeholder="Search brands — Zara, Nike, Apple…"
+          placeholder="Add a brand"
           placeholderTextColor={colors.textMute}
-          style={styles.input}
+          style={styles.inputText}
           autoCorrect={false}
           returnKeyType="done"
         />
+        {q ? (
+          <Pressable onPress={() => setQ('')} hitSlop={8}>
+            <Glyph icon="close" size={16} color={colors.textMute} />
+          </Pressable>
+        ) : null}
       </View>
+
+      <Label style={{ marginTop: 14 }}>{q ? 'Matches' : 'Popular'}</Label>
       <View style={styles.wrap}>
         {suggestions.map((b) => (
           <Pressable
@@ -57,87 +61,93 @@ export function ShoppingPanel({ list, toggle, clear, userLoc, onPickMall }: Prop
               toggle(b.id);
               setQ('');
             }}
-            style={({ pressed }) => [styles.sugg, { borderColor: brandCat[b.cat].color + '77' }, pressed && { opacity: 0.6 }]}
+            style={({ pressed }) => [styles.sugg, pressed && { opacity: 0.6 }]}
           >
-            <Glyph icon="plus" size={12} color={brandCat[b.cat].color} />
-            <Body size={14} weight="semi">
+            <View style={[styles.dot, { backgroundColor: brandCat[b.cat].color }]} />
+            <T size={13.5} weight={500}>
               {b.name}
-            </Body>
+            </T>
+            <Glyph icon="plus" size={13} color={colors.textMute} />
           </Pressable>
         ))}
+        {!suggestions.length ? (
+          <T size={13} color={colors.textMute}>
+            No brand called “{q}” yet.
+          </T>
+        ) : null}
       </View>
 
       {list.length ? (
         <>
           <View style={styles.listHead}>
-            <Body size={11} weight="bold" color={colors.textMute} style={{ letterSpacing: 2 }}>
-              YOUR LIST • {list.length}
-            </Body>
+            <Label>Your list · {list.length}</Label>
             <Pressable onPress={clear} hitSlop={8}>
-              <Body size={11} weight="bold" color={colors.pink} style={{ letterSpacing: 1.5 }}>
-                CLEAR
-              </Body>
+              <Label color={colors.text}>Clear</Label>
             </Pressable>
           </View>
           <View style={styles.wrap}>
             {list.map((id) => {
               const b = brandById[id];
               if (!b) return null;
-              const c = brandCat[b.cat].color;
               return (
-                <Pressable key={id} onPress={() => toggle(id)} style={[styles.item, { backgroundColor: c + '26', borderColor: c }]}>
-                  <Body size={14} weight="bold">
+                <Pressable key={id} onPress={() => toggle(id)} style={styles.item} accessibilityLabel={`Remove ${b.name}`}>
+                  <T size={13.5} weight={600} color={colors.ink}>
                     {b.name}
-                  </Body>
-                  <Glyph icon="close" size={12} color={colors.textDim} />
+                  </T>
+                  <Glyph icon="close" size={12} color={colors.ink} />
                 </Pressable>
               );
             })}
           </View>
 
-          <View style={[styles.objective, { borderLeftColor: full.length ? FULL : PARTIAL }]}>
-            <Body size={15} weight="semi">
-              {full.length ? (
-                <>
-                  <Body size={15} weight="bold" color={FULL}>
-                    {full.length} {full.length === 1 ? 'mall has' : 'malls have'} everything.
-                  </Body>{' '}
-                  Best bet: <Body size={15} weight="bold" color={colors.yellow}>{full[0].mall.name}</Body>
-                </>
-              ) : (
-                <>No single mall has your full list — split the run across the malls below.</>
-              )}
-            </Body>
+          <View style={styles.summary}>
+            {full.length ? (
+              <T size={15} weight={500}>
+                <T size={15} weight={700} color={FULL}>
+                  {full.length} {full.length === 1 ? 'mall has' : 'malls have'} everything.
+                </T>{' '}
+                Best bet: {full[0].mall.name}.
+              </T>
+            ) : (
+              <T size={15} weight={500}>
+                No single mall has your whole list. Split it across the malls below.
+              </T>
+            )}
           </View>
 
-          {results.map((r, i) => {
-            const isFull = r.missing.length === 0;
-            const col = isFull ? FULL : PARTIAL;
-            return (
-              <Pressable key={r.mall.id} onPress={() => onPickMall(r.mall.id)} style={({ pressed }) => [styles.result, pressed && { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
-                <View style={[styles.rank, { borderColor: col }, i === 0 && { backgroundColor: col }]}>
-                  <Display size={15} color={i === 0 ? colors.ink : col}>
-                    {r.have.length}/{list.length}
-                  </Display>
+          <View style={styles.results}>
+            {results.map((r, i) => {
+              const isFull = r.missing.length === 0;
+              return (
+                <View key={r.mall.id}>
+                  {i > 0 ? <Divider style={{ marginLeft: 66 }} /> : null}
+                  <Pressable onPress={() => onPickMall(r.mall.id)} style={({ pressed }) => [styles.result, pressed && { backgroundColor: 'rgba(255,255,255,0.04)' }]}>
+                    <View style={[styles.score, { backgroundColor: isFull ? FULL : PARTIAL }]}>
+                      <H size={16} color={colors.ink}>
+                        {r.have.length}/{list.length}
+                      </H>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <T size={15} weight={600}>
+                        {r.mall.name}
+                      </T>
+                      <T size={12.5} color={colors.textDim} numberOfLines={2}>
+                        {[r.mall.area, r.km != null ? fmtKm(r.km) : null].filter(Boolean).join(' · ')}
+                        {r.missing.length ? ` · no ${r.missing.map((m) => brandById[m]?.name).join(', ')}` : ''}
+                      </T>
+                    </View>
+                    <Glyph icon="chev" size={14} color={colors.textMute} />
+                  </Pressable>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Display size={17}>{r.mall.name}</Display>
-                  <Body size={13} color={colors.textDim} numberOfLines={2}>
-                    {r.mall.area}
-                    {r.km != null ? ` • ${fmtKm(r.km)}` : ''}
-                    {r.missing.length ? `  —  missing ${r.missing.map((m) => brandById[m]?.name).join(', ')}` : ''}
-                  </Body>
-                </View>
-                <Glyph icon="chev" size={16} color={colors.textMute} />
-              </Pressable>
-            );
-          })}
+              );
+            })}
+          </View>
           {results.length ? (
-            <ActionButton label={`Go to ${results[0].mall.name}`} icon="route" color={colors.waypoint} onPress={() => onPickMall(results[0].mall.id)} style={{ marginTop: 14 }} />
+            <Button label={`Go to ${results[0].mall.name}`} icon="route" onPress={() => onPickMall(results[0].mall.id)} style={{ marginTop: 16 }} />
           ) : (
-            <Body size={14} color={colors.textDim} style={{ marginTop: 12 }}>
+            <T size={14} color={colors.textDim} style={{ marginTop: 12 }}>
               None of the mapped malls list these brands yet.
-            </Body>
+            </T>
           )}
         </>
       ) : null}
@@ -146,23 +156,16 @@ export function ShoppingPanel({ list, toggle, clear, userLoc, onPickMall }: Prop
 }
 
 const styles = StyleSheet.create({
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,61,139,0.5)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  input: { flex: 1, color: colors.text, fontFamily: fonts.bodySemi, fontSize: 16, paddingVertical: 11 },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
-  sugg: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: 3, paddingHorizontal: 9, paddingVertical: 6 },
-  listHead: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 3, paddingHorizontal: 10, paddingVertical: 6 },
-  objective: { borderLeftWidth: 3, paddingLeft: 12, paddingVertical: 4, marginTop: 18, marginBottom: 8 },
-  result: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
-  rank: { width: 52, height: 34, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ skewX: '-8deg' }] },
+  body: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 20 },
+  input: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, height: 46, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.raised },
+  inputText: { flex: 1, color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 16, height: 46 },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  sugg: { flexDirection: 'row', alignItems: 'center', gap: 7, height: 32, paddingHorizontal: 10, borderRadius: radius.sm, backgroundColor: colors.raised },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  listHead: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 22 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 32, paddingHorizontal: 11, borderRadius: radius.sm, backgroundColor: colors.text },
+  summary: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.raised },
+  results: { marginTop: 8 },
+  result: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 62 },
+  score: { width: 52, height: 34, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
 });

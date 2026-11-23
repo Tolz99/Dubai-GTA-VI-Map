@@ -1,8 +1,8 @@
-# NEON DXB — Dubai, mapped like an open-world game
+# Dubai Maps: Dubai, mapped like an open-world game
 
-A neon, game-style map of Dubai for iPhone (Android and web also work). Every mall, landmark, beach, souk and famous restaurant is a colour-coded blip. There's a **map legend sidebar**, **story missions**, and a **Shopping Run**: add the brands you want (Zara, Nike, Sephora…) and every mall that has them lights up, ranked by how much of your list it covers.
+A game-style map of Dubai for iPhone (Android and web also work). Every mall, landmark, beach, souk and famous restaurant is a colour-coded blip. There's a **map legend sidebar**, **story missions**, and a **Shopping Run**: add the brands you want (Zara, Nike, Sephora…) and every mall that has them lights up, ranked by how much of your list it covers.
 
-> Original art and branding. Inspired by retro-neon open-world game maps, but not affiliated with or using assets from any game or studio.
+> Original art, icons and branding in the visual language of open-world game maps. Not affiliated with, or using assets from, any game or studio.
 
 ## What's in it
 
@@ -23,7 +23,9 @@ A neon, game-style map of Dubai for iPhone (Android and web also work). Every ma
 - **Set waypoint**: draws a glowing driving route with ETA (OpenStreetMap routing)
 - **Start GPS**: hands off to Apple Maps, Google Maps or Waze for turn-by-turn
 - **Search** across places, areas, tags and brands
-- 3D tilt, locate me, and reset view
+- **Drive mode**: turn-by-turn guidance (next maneuver, distance, street, then-step, ETA) on a follow-camera
+- 3D tilt and locate me
+- **CarPlay**: designed in, see [docs/CARPLAY.md](docs/CARPLAY.md) for what's in place and what's needed
 
 ## Run it on your iPhone (5 minutes, no Mac needed)
 
@@ -50,20 +52,21 @@ eas build --platform ios --profile production   # cloud build, asks for your App
 eas submit --platform ios                       # uploads to App Store Connect / TestFlight
 ```
 
-Before submitting, change `ios.bundleIdentifier` in `app.json` (currently `com.neondxb.map`) to something you own, and pick your final app name.
+Before submitting, change `ios.bundleIdentifier` in `app.json` (currently `com.dubaimaps.app`) to something you own. App Store names must be unique, so check that "Dubai Maps" is free in App Store Connect.
 
 ## Project layout
 
 ```
 src/
   App.tsx                 main screen: HUD, state, map wiring
-  components/             LegendDrawer, PlaceCard, ShoppingPanel, MissionPanel, SearchOverlay, Sheet, ui
+  components/             LegendDrawer, PlaceCard, ShoppingPanel, MissionPanel, SearchOverlay, DriveHUD, Sheet, ui
   data/
     malls.ts              31 malls (coordinates, blurbs, highlights)
     places.ts             attractions, restaurants, cafés, beaches, parks, souks, hotels…
     brands.ts             brand → malls directory  ← edit store line-ups here
     missions.ts           story missions
-    categories.ts         blip categories, colours, icons
+    categories.ts         blip categories, colours, icon glyphs
+  lib/guidance.ts         turn-by-turn engine (phone HUD now, CarPlay later)
   map/
     web/style.js          the custom neon map style
     web/map.js            map engine (MapLibre GL) — blips, routes, highlights
@@ -81,4 +84,4 @@ scripts/
 ## Data and credits
 - Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, vector tiles by [OpenFreeMap](https://openfreemap.org) / OpenMapTiles. Routing by [OSRM](https://project-osrm.org).
 - Store line-ups are compiled from public mall directories and change over time. Treat them as a guide and check the mall's official directory before a special trip.
-- Fonts: Anton and Rajdhani (SIL Open Font License).
+- Fonts: Barlow Condensed and Inter (SIL Open Font License).

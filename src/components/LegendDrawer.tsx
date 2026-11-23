@@ -1,22 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Animated, Image, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ALL_PLACES,
-  BRAND_CATEGORIES,
-  BRANDS,
-  MISSIONS,
-  PLACE_CATEGORIES,
-  STATS,
-  type BrandCategory,
-  type PlaceCategory,
-} from '../data';
+import { ALL_PLACES, BRAND_CATEGORIES, BRANDS, MISSIONS, PLACE_CATEGORIES, STATS, type BrandCategory, type PlaceCategory } from '../data';
 import type { Focus } from '../state/store';
-import { APP_NAME, colors } from '../theme/theme';
-import { Blip, Body, Display, Glyph, SunsetBar, tap } from './ui';
+import { colors } from '../theme/theme';
+import { Blip, Divider, Glyph, H, Label, T, tap } from './ui';
 
 export type LegendTab = 'map' | 'shops' | 'missions';
-type Tab = LegendTab;
 
 interface Props {
   open: boolean;
@@ -33,17 +23,22 @@ interface Props {
   setTab: (t: LegendTab) => void;
 }
 
+const TABS: [LegendTab, string][] = [
+  ['map', 'Legend'],
+  ['shops', 'Shops'],
+  ['missions', 'Missions'],
+];
+
 export function LegendDrawer(p: Props) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const w = Math.min(380, width * 0.88);
+  const w = Math.min(360, width * 0.86);
   const x = useRef(new Animated.Value(-w)).current;
-  const { tab, setTab } = p;
   const [mounted, setMounted] = useState(p.open);
 
   useEffect(() => {
     if (p.open) setMounted(true);
-    Animated.timing(x, { toValue: p.open ? 0 : -w, duration: 240, useNativeDriver: true }).start(() => {
+    Animated.timing(x, { toValue: p.open ? 0 : -w, duration: 220, useNativeDriver: true }).start(() => {
       if (!p.open) setMounted(false);
     });
   }, [p.open, w, x]);
@@ -53,49 +48,43 @@ export function LegendDrawer(p: Props) {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Animated.View style={[styles.scrim, { opacity: x.interpolate({ inputRange: [-w, 0], outputRange: [0, 1] }) }]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={p.onClose} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={p.onClose} accessibilityLabel="Close legend" />
       </Animated.View>
-      <Animated.View style={[styles.drawer, { width: w, paddingTop: insets.top + 10, transform: [{ translateX: x }] }]}>
+      <Animated.View style={[styles.drawer, { width: w, paddingTop: insets.top + 12, transform: [{ translateX: x }] }]}>
         <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Display size={30} color={colors.text}>
-              {APP_NAME}
-            </Display>
-            <Body size={12} color={colors.textDim} weight="semi" style={{ letterSpacing: 1.5 }}>
-              {STATS.places} LOCATIONS • {STATS.brands} BRANDS • {STATS.stores} STORES
-            </Body>
-          </View>
-          <Pressable onPress={p.onClose} hitSlop={12} style={{ padding: 6 }}>
-            <Glyph icon="close" size={22} color={colors.textDim} />
+          <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          <Pressable onPress={p.onClose} hitSlop={12} style={styles.closeBtn} accessibilityLabel="Close">
+            <Glyph icon="close" size={16} color={colors.textDim} />
           </Pressable>
         </View>
-        <SunsetBar style={{ marginHorizontal: 18, marginTop: 10 }} />
+        <T size={12} color={colors.textMute} style={{ paddingHorizontal: 20, marginTop: 6 }}>
+          {STATS.places} places · {STATS.brands} brands · {STATS.stores} store listings
+        </T>
+
         <View style={styles.tabs}>
-          {(
-            [
-              ['map', 'MAP LEGEND'],
-              ['shops', 'SHOPS'],
-              ['missions', 'MISSIONS'],
-            ] as [Tab, string][]
-          ).map(([id, label]) => (
-            <Pressable
-              key={id}
-              onPress={() => {
-                tap();
-                setTab(id);
-              }}
-              style={[styles.tab, tab === id && styles.tabActive]}
-            >
-              <Display size={15} color={tab === id ? colors.ink : colors.textDim}>
-                {label}
-              </Display>
-            </Pressable>
-          ))}
+          {TABS.map(([id, label]) => {
+            const on = p.tab === id;
+            return (
+              <Pressable
+                key={id}
+                onPress={() => {
+                  tap();
+                  p.setTab(id);
+                }}
+                style={[styles.tab, on && styles.tabOn]}
+              >
+                <H size={16} color={on ? colors.ink : colors.textDim}>
+                  {label}
+                </H>
+              </Pressable>
+            );
+          })}
         </View>
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 30 }} showsVerticalScrollIndicator={false}>
-          {tab === 'map' && <MapTab {...p} />}
-          {tab === 'shops' && <ShopsTab {...p} />}
-          {tab === 'missions' && <MissionsTab {...p} />}
+
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} showsVerticalScrollIndicator={false}>
+          {p.tab === 'map' && <MapTab {...p} />}
+          {p.tab === 'shops' && <ShopsTab {...p} />}
+          {p.tab === 'missions' && <MissionsTab {...p} />}
         </ScrollView>
       </Animated.View>
     </View>
@@ -112,18 +101,15 @@ function MapTab({ visible, setVisible }: Props) {
   return (
     <View>
       <View style={styles.sectionHead}>
-        <Body size={12} color={colors.textMute} weight="bold" style={{ letterSpacing: 2 }}>
-          BLIPS ON MAP
-        </Body>
+        <Label>On the map</Label>
         <Pressable
+          hitSlop={8}
           onPress={() => {
             tap();
             setVisible(all ? [] : PLACE_CATEGORIES.map((c) => c.id));
           }}
         >
-          <Body size={12} color={colors.cyan} weight="bold" style={{ letterSpacing: 1.5 }}>
-            {all ? 'HIDE ALL' : 'SHOW ALL'}
-          </Body>
+          <Label color={colors.text}>{all ? 'Hide all' : 'Show all'}</Label>
         </Pressable>
       </View>
       {PLACE_CATEGORIES.map((c) => {
@@ -138,22 +124,20 @@ function MapTab({ visible, setVisible }: Props) {
             onLongPress={() => setVisible([c.id])}
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           >
-            <Blip color={c.color} icon={c.icon} size={30} dim={!on} />
-            <Body size={17} weight="semi" color={on ? colors.text : colors.textMute} style={{ flex: 1 }}>
+            <Blip color={c.color} icon={c.icon} size={26} dim={!on} />
+            <T size={15} weight={500} color={on ? colors.text : colors.textMute} style={{ flex: 1 }}>
               {c.label}
-            </Body>
-            <Body size={14} color={colors.textMute} weight="bold">
+            </T>
+            <T size={13} color={colors.textMute} style={styles.count}>
               {counts[c.id] || 0}
-            </Body>
-            <View style={[styles.check, on && { backgroundColor: c.color, borderColor: c.color }]}>
-              {on ? <Glyph icon="check" size={14} color={colors.ink} /> : null}
-            </View>
+            </T>
+            <View style={[styles.toggle, on && styles.toggleOn]}>{on ? <Glyph icon="check" size={13} color={colors.ink} /> : null}</View>
           </Pressable>
         );
       })}
-      <Body size={12} color={colors.textMute} style={{ paddingHorizontal: 18, paddingTop: 12 }}>
-        Tip: long-press a category to show only that one.
-      </Body>
+      <T size={12} color={colors.textMute} style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+        Long-press a category to show only that one.
+      </T>
     </View>
   );
 }
@@ -163,14 +147,12 @@ function ShopsTab({ focus, setFocus, shoppingList, toggleShopping, onClose }: Pr
   return (
     <View>
       <View style={styles.sectionHead}>
-        <Body size={12} color={colors.textMute} weight="bold" style={{ letterSpacing: 2 }}>
-          TAP A BRAND TO FIND IT • + TO ADD TO LIST
-        </Body>
+        <Label>Tap a brand to find it · + adds to list</Label>
       </View>
       {BRAND_CATEGORIES.map((c) => {
         const brands = BRANDS.filter((b) => b.cat === c.id).sort((a, b) => a.name.localeCompare(b.name));
         const isOpen = open === c.id;
-        const catFocused = focus.kind === 'brandCat' && focus.id === c.id;
+        const catOn = focus.kind === 'brandCat' && focus.id === c.id;
         return (
           <View key={c.id}>
             <Pressable
@@ -180,61 +162,65 @@ function ShopsTab({ focus, setFocus, shoppingList, toggleShopping, onClose }: Pr
               }}
               style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
             >
-              <Blip color={c.color} icon={c.icon} size={30} />
-              <Body size={17} weight="semi" style={{ flex: 1 }}>
+              <Blip color={c.color} icon={c.icon} size={26} />
+              <T size={15} weight={600} style={{ flex: 1 }}>
                 {c.label}
-              </Body>
+              </T>
               <Pressable
                 hitSlop={8}
                 onPress={() => {
                   tap();
-                  setFocus(catFocused ? { kind: 'none' } : { kind: 'brandCat', id: c.id });
-                  if (!catFocused) onClose();
+                  setFocus(catOn ? { kind: 'none' } : { kind: 'brandCat', id: c.id });
+                  if (!catOn) onClose();
                 }}
-                style={[styles.mini, { borderColor: c.color }, catFocused && { backgroundColor: c.color }]}
+                style={[styles.pill, catOn && styles.pillOn]}
               >
-                <Body size={11} weight="bold" color={catFocused ? colors.ink : c.color} style={{ letterSpacing: 1 }}>
-                  {catFocused ? 'SHOWN' : 'SHOW'}
-                </Body>
+                <T size={11.5} weight={600} color={catOn ? colors.ink : colors.text}>
+                  {catOn ? 'Showing' : 'Show all'}
+                </T>
               </Pressable>
-              <View style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}>
+              <View style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }], marginLeft: 4 }}>
                 <Glyph icon="chev" size={16} color={colors.textMute} />
               </View>
             </Pressable>
-            {isOpen &&
-              brands.map((b) => {
-                const inList = shoppingList.includes(b.id);
-                const tracked = focus.kind === 'brand' && focus.id === b.id;
-                return (
-                  <Pressable
-                    key={b.id}
-                    onPress={() => {
-                      tap();
-                      setFocus({ kind: 'brand', id: b.id });
-                      onClose();
-                    }}
-                    style={({ pressed }) => [styles.brandRow, pressed && styles.rowPressed, tracked && { backgroundColor: c.color + '22' }]}
-                  >
-                    <View style={[styles.brandDot, { backgroundColor: c.color }]} />
-                    <Body size={16} weight="semi" style={{ flex: 1 }} numberOfLines={1}>
-                      {b.name}
-                    </Body>
-                    <Body size={13} color={colors.textMute} weight="semi">
-                      {b.malls.length} {b.malls.length === 1 ? 'mall' : 'malls'}
-                    </Body>
+            {isOpen ? (
+              <View style={styles.brandList}>
+                {brands.map((b) => {
+                  const inList = shoppingList.includes(b.id);
+                  const tracked = focus.kind === 'brand' && focus.id === b.id;
+                  return (
                     <Pressable
-                      hitSlop={10}
+                      key={b.id}
                       onPress={() => {
                         tap();
-                        toggleShopping(b.id);
+                        setFocus({ kind: 'brand', id: b.id });
+                        onClose();
                       }}
-                      style={[styles.plus, inList && { backgroundColor: colors.pink, borderColor: colors.pink }]}
+                      style={({ pressed }) => [styles.brandRow, tracked && styles.brandRowOn, pressed && styles.rowPressed]}
                     >
-                      <Glyph icon={inList ? 'check' : 'plus'} size={14} color={inList ? colors.ink : colors.pink} />
+                      <T size={14.5} weight={500} color={tracked ? colors.ink : colors.text} style={{ flex: 1 }} numberOfLines={1}>
+                        {b.name}
+                      </T>
+                      <T size={12.5} color={tracked ? colors.ink : colors.textMute}>
+                        {b.malls.length} {b.malls.length === 1 ? 'mall' : 'malls'}
+                      </T>
+                      <Pressable
+                        hitSlop={10}
+                        accessibilityLabel={inList ? `Remove ${b.name} from list` : `Add ${b.name} to list`}
+                        onPress={() => {
+                          tap();
+                          toggleShopping(b.id);
+                        }}
+                        style={[styles.add, inList && styles.addOn]}
+                      >
+                        <Glyph icon={inList ? 'check' : 'plus'} size={14} color={inList ? colors.ink : colors.text} />
+                      </Pressable>
                     </Pressable>
-                  </Pressable>
-                );
-              })}
+                  );
+                })}
+              </View>
+            ) : null}
+            <Divider style={{ marginLeft: 20 }} />
           </View>
         );
       })}
@@ -248,17 +234,13 @@ function MissionsTab({ missionDone, openMission }: Props) {
   const pct = Math.round((done / total) * 100);
   return (
     <View>
-      <View style={{ paddingHorizontal: 18, paddingTop: 16 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <Body size={12} color={colors.textMute} weight="bold" style={{ letterSpacing: 2 }}>
-            CITY COMPLETION
-          </Body>
-          <Display size={26} color={colors.yellow}>
-            {pct}%
-          </Display>
+      <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <Label>Dubai completion</Label>
+          <H size={22}>{pct}%</H>
         </View>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${Math.max(pct, 1)}%` }]} />
+        <View style={styles.track}>
+          <View style={[styles.fill, { width: `${pct}%` }]} />
         </View>
       </View>
       {MISSIONS.map((m) => {
@@ -273,20 +255,18 @@ function MissionsTab({ missionDone, openMission }: Props) {
             }}
             style={({ pressed }) => [styles.mission, pressed && styles.rowPressed]}
           >
-            <View style={[styles.missionNum, { borderColor: m.color }, complete && { backgroundColor: m.color }]}>
-              {complete ? <Glyph icon="check" size={18} color={colors.ink} /> : <Display size={18} color={m.color}>{m.number}</Display>}
+            <View style={[styles.missionBadge, { backgroundColor: m.color }]}>
+              {complete ? <Glyph icon="check" size={16} color={colors.ink} /> : <H size={17} color={colors.ink}>{m.number}</H>}
             </View>
             <View style={{ flex: 1 }}>
-              <Display size={18} color={colors.text}>
-                {m.title}
-              </Display>
-              <Body size={13} color={colors.textDim} numberOfLines={1}>
+              <H size={17}>{m.title}</H>
+              <T size={12.5} color={colors.textDim} numberOfLines={1}>
                 {m.subtitle}
-              </Body>
+              </T>
             </View>
-            <Body size={13} weight="bold" color={complete ? m.color : colors.textMute}>
+            <T size={12.5} weight={600} color={complete ? colors.green : colors.textMute}>
               {d}/{m.stops.length}
-            </Body>
+            </T>
           </Pressable>
         );
       })}
@@ -295,60 +275,29 @@ function MissionsTab({ missionDone, openMission }: Props) {
 }
 
 const styles = StyleSheet.create({
-  scrim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(5,2,12,0.55)' },
-  drawer: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: colors.panel,
-    borderRightWidth: 1,
-    borderRightColor: 'rgba(255,61,139,0.35)',
-  },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 18 },
-  tabs: { flexDirection: 'row', gap: 6, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6 },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: colors.line,
-    transform: [{ skewX: '-8deg' }],
-  },
-  tabActive: { backgroundColor: colors.yellow, borderColor: colors.yellow },
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 9 },
+  scrim: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.45)' },
+  drawer: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: colors.panel, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: colors.hairline },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
+  logo: { width: 150, height: 76 },
+  closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.raised, alignItems: 'center', justifyContent: 'center' },
+  tabs: { flexDirection: 'row', marginHorizontal: 20, marginTop: 16, marginBottom: 4, backgroundColor: colors.raised, borderRadius: 6, padding: 3 },
+  tab: { flex: 1, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
+  tabOn: { backgroundColor: colors.text },
+  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, minHeight: 48 },
   rowPressed: { backgroundColor: 'rgba(255,255,255,0.05)' },
-  check: {
-    width: 22,
-    height: 22,
-    borderRadius: 3,
-    borderWidth: 1.5,
-    borderColor: colors.textMute,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mini: { borderWidth: 1, borderRadius: 3, paddingHorizontal: 7, paddingVertical: 3 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 32, paddingRight: 18, paddingVertical: 8 },
-  brandDot: { width: 6, height: 6, borderRadius: 3 },
-  plus: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 1.5,
-    borderColor: colors.pink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  progressTrack: { height: 8, backgroundColor: 'rgba(255,255,255,0.08)', marginTop: 6, marginBottom: 8 },
-  progressFill: { height: 8, backgroundColor: colors.yellow },
-  mission: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 10 },
-  missionNum: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  count: { fontVariant: ['tabular-nums'], minWidth: 20, textAlign: 'right' },
+  toggle: { width: 22, height: 22, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
+  toggleOn: { backgroundColor: colors.text, borderColor: colors.text },
+  pill: { height: 26, paddingHorizontal: 10, borderRadius: 13, backgroundColor: colors.raisedHi, justifyContent: 'center' },
+  pillOn: { backgroundColor: colors.text },
+  brandList: { paddingBottom: 6 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 60, paddingRight: 20, minHeight: 42 },
+  brandRowOn: { backgroundColor: colors.text },
+  add: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.raisedHi, alignItems: 'center', justifyContent: 'center' },
+  addOn: { backgroundColor: colors.text },
+  track: { height: 4, backgroundColor: colors.raised, borderRadius: 2, marginTop: 8, overflow: 'hidden' },
+  fill: { height: 4, backgroundColor: colors.text },
+  mission: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, minHeight: 60 },
+  missionBadge: { width: 34, height: 34, borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
 });

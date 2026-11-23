@@ -1,48 +1,54 @@
 {
   "expo": {
-    "name": "NEON DXB",
-    "slug": "neon-dxb",
-    "scheme": "neondxb",
+    "name": "Dubai Maps",
+    "slug": "dubai-maps",
+    "scheme": "dubaimaps",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0B0618",
+    "backgroundColor": "#0A0810",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0B0618"
+      "backgroundColor": "#0A0810"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.neondxb.map",
+      "bundleIdentifier": "com.dubaimaps.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "NEON DXB shows your position on the map and routes you to malls, missions and places.",
-        "LSApplicationQueriesSchemes": ["comgooglemaps", "waze"],
+        "NSLocationWhenInUseUsageDescription": "Dubai Maps shows your position on the map and guides you to malls, missions and places.",
+        "LSApplicationQueriesSchemes": [
+          "comgooglemaps",
+          "waze"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.neondxb.map",
+      "package": "com.dubaimaps.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0B0618",
+        "backgroundColor": "#2A0E4A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "NEON DXB"
+      "name": "Dubai Maps"
     },
     "plugins": [
       "expo-font",
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "NEON DXB shows your position on the map and routes you to malls, missions and places."
+          "locationWhenInUsePermission": "Dubai Maps shows your position on the map and guides you to malls, missions and places."
         }
       ]
     ]

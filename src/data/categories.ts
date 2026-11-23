@@ -28,17 +28,17 @@ export type IconName =
   | 'shirt'
   | 'diamond'
   | 'shoe'
-  | 'drop'
+  | 'perfume'
   | 'phone'
   | 'sofa'
   | 'fork'
   | 'cup'
-  | 'wave'
+  | 'umbrella'
   | 'tree'
-  | 'lantern'
+  | 'dome'
   | 'bolt'
-  | 'column'
-  | 'key';
+  | 'museum'
+  | 'bed';
 
 export interface CategoryDef<T extends string> {
   id: T;
@@ -49,27 +49,27 @@ export interface CategoryDef<T extends string> {
 }
 
 export const PLACE_CATEGORIES: CategoryDef<PlaceCategory>[] = [
-  { id: 'attraction', label: 'Main Attractions', short: 'ATTRACTION', color: '#FFD23F', icon: 'star' },
-  { id: 'mall', label: 'Malls', short: 'MALL', color: '#FF3D8B', icon: 'bag' },
-  { id: 'food', label: 'Restaurants', short: 'RESTAURANT', color: '#FF8A3D', icon: 'fork' },
-  { id: 'cafe', label: 'Cafés & Desserts', short: 'CAFÉ', color: '#F5B971', icon: 'cup' },
-  { id: 'beach', label: 'Beaches', short: 'BEACH', color: '#3DFFD8', icon: 'wave' },
-  { id: 'park', label: 'Parks & Nature', short: 'PARK', color: '#45E08A', icon: 'tree' },
-  { id: 'souk', label: 'Souks & Heritage', short: 'SOUK', color: '#E8A54B', icon: 'lantern' },
-  { id: 'theme', label: 'Theme Parks & Thrills', short: 'THRILL', color: '#FF4D5E', icon: 'bolt' },
-  { id: 'culture', label: 'Museums & Culture', short: 'CULTURE', color: '#8FA8FF', icon: 'column' },
-  { id: 'hotel', label: 'Iconic Hotels', short: 'HOTEL', color: '#E6E1FF', icon: 'key' },
+  { id: 'attraction', label: 'Main Attractions', short: 'ATTRACTION', color: '#FFC93C', icon: 'star' },
+  { id: 'mall', label: 'Malls', short: 'MALL', color: '#F2387C', icon: 'bag' },
+  { id: 'food', label: 'Restaurants', short: 'RESTAURANT', color: '#FF8A4C', icon: 'fork' },
+  { id: 'cafe', label: 'Cafés & Desserts', short: 'CAFÉ', color: '#E9B872', icon: 'cup' },
+  { id: 'beach', label: 'Beaches', short: 'BEACH', color: '#2FD6E8', icon: 'umbrella' },
+  { id: 'park', label: 'Parks & Nature', short: 'PARK', color: '#4CD964', icon: 'tree' },
+  { id: 'souk', label: 'Souks & Heritage', short: 'SOUK', color: '#D08A45', icon: 'dome' },
+  { id: 'theme', label: 'Theme Parks & Thrills', short: 'THRILL', color: '#FF4D4D', icon: 'bolt' },
+  { id: 'culture', label: 'Museums & Culture', short: 'CULTURE', color: '#7EA6FF', icon: 'museum' },
+  { id: 'hotel', label: 'Iconic Hotels', short: 'HOTEL', color: '#FFFFFF', icon: 'bed' },
 ];
 
 export const BRAND_CATEGORIES: CategoryDef<BrandCategory>[] = [
-  { id: 'fashion', label: 'Clothing & Fashion', short: 'FASHION', color: '#29E3FF', icon: 'shirt' },
-  { id: 'luxury', label: 'Luxury & Designer', short: 'LUXURY', color: '#B66DFF', icon: 'diamond' },
-  { id: 'sports', label: 'Sneakers & Sports', short: 'SPORTS', color: '#9BFF3D', icon: 'shoe' },
-  { id: 'beauty', label: 'Beauty & Fragrance', short: 'BEAUTY', color: '#FF8AD8', icon: 'drop' },
-  { id: 'tech', label: 'Tech & Electronics', short: 'TECH', color: '#4D9BFF', icon: 'phone' },
-  { id: 'home', label: 'Home & Lifestyle', short: 'HOME', color: '#5FD3C6', icon: 'sofa' },
-  { id: 'foodchain', label: 'Food Chains', short: 'FOOD', color: '#FF8A3D', icon: 'fork' },
-  { id: 'cafechain', label: 'Coffee & Sweets', short: 'COFFEE', color: '#F5B971', icon: 'cup' },
+  { id: 'fashion', label: 'Clothing & Fashion', short: 'FASHION', color: '#5AC8FA', icon: 'shirt' },
+  { id: 'luxury', label: 'Luxury & Designer', short: 'LUXURY', color: '#B78CFF', icon: 'diamond' },
+  { id: 'sports', label: 'Sneakers & Sports', short: 'SPORTS', color: '#A6E22E', icon: 'shoe' },
+  { id: 'beauty', label: 'Beauty & Fragrance', short: 'BEAUTY', color: '#FF7AC8', icon: 'perfume' },
+  { id: 'tech', label: 'Tech & Electronics', short: 'TECH', color: '#4D8DFF', icon: 'phone' },
+  { id: 'home', label: 'Home & Lifestyle', short: 'HOME', color: '#46C9B5', icon: 'sofa' },
+  { id: 'foodchain', label: 'Food Chains', short: 'FOOD', color: '#FF8A4C', icon: 'fork' },
+  { id: 'cafechain', label: 'Coffee & Sweets', short: 'COFFEE', color: '#E9B872', icon: 'cup' },
 ];
 
 export const placeCat = Object.fromEntries(PLACE_CATEGORIES.map((c) => [c.id, c])) as Record<
@@ -81,22 +81,22 @@ export const brandCat = Object.fromEntries(BRAND_CATEGORIES.map((c) => [c.id, c]
   CategoryDef<BrandCategory>
 >;
 
-// 24x24 glyph paths shared by the native UI (react-native-svg) and the map (canvas/SVG).
+// 24x24 solid glyphs (even-odd fill). Drawn as game-map blips: colour fill + thick dark outline.
 export const ICON_PATHS: Record<IconName, string> = {
-  star: 'M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z',
-  bag: 'M6 8h12l1 13H5zM9 8V6.5a3 3 0 016 0V8h-1.8V6.5a1.2 1.2 0 00-2.4 0V8z',
-  shirt: 'M8 3l4 2.2L16 3l5 3.5-2.4 4-1.6-1V21H7V9.5l-1.6 1L3 6.5z',
-  diamond: 'M7 4h10l4 5-9 12L3 9zm-.9 5h11.8l-2.6-3.3H8.7z',
-  shoe: 'M2 14.5V9l5 1.5 3-3 2 .5-1 2.5 3 1.5 6 1.5c1.7.5 2 1.5 2 3.5H2zM2 19h20v2H2z',
-  drop: 'M12 2.5s6.5 7.2 6.5 11.7a6.5 6.5 0 01-13 0C5.5 9.7 12 2.5 12 2.5z',
-  phone: 'M7.5 2h9A1.5 1.5 0 0118 3.5v17a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 016 20.5v-17A1.5 1.5 0 017.5 2zM8 5v13h8V5z',
-  sofa: 'M5 7a2 2 0 012-2h10a2 2 0 012 2v3h-2v3H7v-3H5zM2 11a2 2 0 014 0v3h12v-3a2 2 0 014 0v7h-2v2h-2v-2H6v2H4v-2H2z',
-  fork: 'M6 2h1.5v6H9V2h1.5v6H12V2h1.5v7a3 3 0 01-2.5 3v10H8.5V12A3 3 0 016 9zM17 2c2 0 3 2.5 3 7v4h-2v9h-2.5V2z',
-  cup: 'M4 8h13v5a6 6 0 01-6 6h-1a6 6 0 01-6-6zm13 1.5h1.5a2.5 2.5 0 010 5H17V13h1.5a1 1 0 000-2H17zM3 20.5h15V22H3zM8 2.5c1 1 1 2 0 3s-1 2 0 3M12 2.5c1 1 1 2 0 3s-1 2 0 3',
-  wave: 'M2 10c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2v3c-2.5 0-2.5-2-5-2s-2.5 2-5 2-2.5-2-5-2-2.5 2-5 2zm0 6c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2v3c-2.5 0-2.5-2-5-2s-2.5 2-5 2-2.5-2-5-2-2.5 2-5 2z',
-  tree: 'M12 2l6 8h-3l4 6h-6v6h-2v-6H5l4-6H6z',
-  lantern: 'M10 2h4v2h2l1 3H7l1-3h2zM7 8h10l-1 10H8zm1 11h8l-1 3H9z',
-  bolt: 'M13.5 2L4 14h6.5L9 22l11-13h-6.8z',
-  column: 'M12 2l10 5v2H2V7zM4 10h3v8H4zm6.5 0h3v8h-3zm6.5 0h3v8h-3zM2 19h20v3H2z',
-  key: 'M8 3a5 5 0 014.6 7H22v4h-3v3h-3v-3h-3.4A5 5 0 118 3zm0 3.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z',
+  star: 'M12 1.8l3.1 6.6 7.1.9-5.2 4.9 1.3 7.1L12 17.8l-6.3 3.5L7 14.2 1.8 9.3l7.1-.9z',
+  bag: 'M4.5 8h15l-1.2 14H5.7zM8 8V6.8a4 4 0 018 0V8h-2.4V6.8a1.6 1.6 0 00-3.2 0V8z',
+  shirt: 'M8.2 2.5h2a1.8 1.8 0 003.6 0h2l5.7 3.6-2.6 4.6-2.2-1.2V21.5H7.3V9.5l-2.2 1.2-2.6-4.6z',
+  diamond: 'M6.4 3.5h11.2L22.5 9.4 12 21.5 1.5 9.4zM8 5.5L5.6 9h12.8L16 5.5z',
+  shoe: 'M1.8 18V11l4.4-.8 2.6-3.4 2.6 1-.9 2.3 3.1 2.1 6.4 1.3c1.7.4 2.4 1.8 2.4 4.5zM1.8 19.4h20.4V22H1.8z',
+  perfume: 'M9.5 1.8h5v3.4h-5zM7.4 6.6h9.2l1.4 3.2v9.4a3 3 0 01-3 3H9a3 3 0 01-3-3V9.8z',
+  phone: 'M7.2 1.5h9.6A2.2 2.2 0 0119 3.7v16.6a2.2 2.2 0 01-2.2 2.2H7.2A2.2 2.2 0 015 20.3V3.7a2.2 2.2 0 012.2-2.2zM7.4 4.2v13.4h9.2V4.2z',
+  sofa: 'M5 5.5h14a2 2 0 012 2V10a3 3 0 00-3 3v.5H6V13a3 3 0 00-3-3V7.5a2 2 0 012-2zM1.5 13a2 2 0 014 0v2.5h13V13a2 2 0 014 0v6.5h-2.2v2h-2.4v-2H6.1v2H3.7v-2H1.5z',
+  fork: 'M5.5 1.8h1.6v6h1.2v-6h1.6v6h1.2v-6h1.6v7.6a3 3 0 01-2.3 2.9v10H7.8v-10a3 3 0 01-2.3-2.9zM16.6 1.8c2.6 0 4 3.4 4 8.4v3.4h-2.2v8.6h-2.7V1.8z',
+  cup: 'M2.8 8.2h14.4v5.4a5.6 5.6 0 01-5.6 5.6H8.4a5.6 5.6 0 01-5.6-5.6zM17.2 9.2h1.6a3.2 3.2 0 010 6.4h-2v-2.3h2a.9.9 0 000-1.8h-1.6zM2.5 20.3h15.5v2.2H2.5zM6.6 1.8h2.2v4.6H6.6zM11 1.8h2.2v4.6H11z',
+  umbrella: 'M12 2.5a9.5 9.5 0 019.5 9.5h-19A9.5 9.5 0 0112 2.5zM10.8 12h2.4v8.2h-2.4zM4.5 19.8h15v2.4h-15z',
+  tree: 'M12 1.5l6.5 8.5h-3.3l4.6 6.8h-6.6v5.7h-2.4v-5.7H4.2l4.6-6.8H5.5z',
+  dome: 'M12 1.5c3.4 2.2 5.6 4 5.6 7.4v1.3H6.4V8.9c0-3.4 2.2-5.2 5.6-7.4zM4.5 11.5h15v11h-5v-5.2a2.5 2.5 0 00-5 0v5.2h-5z',
+  bolt: 'M14 1.5L3.8 13.8h6.6L8.8 22.5 20.2 9.2h-7z',
+  museum: 'M12 1.5l10.5 5.2v2.6h-21V6.7zM3.5 10.6h3.2v8.2H3.5zm6.9 0h3.2v8.2h-3.2zm6.9 0h3.2v8.2h-3.2zM1.5 20h21v2.6h-21z',
+  bed: 'M1.8 4.5h2.6v7.8h17.8V18h-2.6v-2.6H4.4V18H1.8zM6.8 6.6a2.4 2.4 0 110 4.8 2.4 2.4 0 010-4.8zM10.5 7.2h7.5a4.2 4.2 0 014.2 4.2v.4H10.5z',
 };

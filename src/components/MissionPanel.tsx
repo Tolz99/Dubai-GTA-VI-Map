@@ -1,72 +1,74 @@
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { MISSIONS, placeById, placeCat } from '../data';
-import { fmtKm, fmtMin, type RouteResult } from '../lib/geo';
-import { colors } from '../theme/theme';
-import { ActionButton, Blip, Body, Display, Glyph, tap } from './ui';
+import { colors, radius } from '../theme/theme';
+import { Blip, Button, Glyph, H, Label, T, tap } from './ui';
 
 interface Props {
   missionId: string;
   done: string[];
   toggleStop: (placeId: string) => void;
   active: boolean;
-  route: RouteResult | null;
   onStart: () => void;
   onStop: () => void;
   onSelect: (placeId: string) => void;
 }
 
-export function MissionPanel({ missionId, done, toggleStop, active, route, onStart, onStop, onSelect }: Props) {
+export function MissionPanel({ missionId, done, toggleStop, active, onStart, onStop, onSelect }: Props) {
   const m = MISSIONS.find((x) => x.id === missionId)!;
   const complete = done.length === m.stops.length;
   return (
-    <ScrollView contentContainerStyle={{ padding: 18, paddingTop: 16 }} showsVerticalScrollIndicator={false}>
-      <Body size={12} weight="bold" color={m.color} style={{ letterSpacing: 2 }}>
-        STORY MISSION {m.number}
-      </Body>
-      <Display size={30}>{m.title}</Display>
-      <Body size={15} color={colors.textDim}>
+    <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingRight: 40 }}>
+        <View style={[styles.badge, { backgroundColor: m.color }]}>
+          <H size={20} color={colors.ink}>
+            {m.number}
+          </H>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Label>Mission {m.number} · {m.stops.length} stops</Label>
+          <H size={28}>{m.title}</H>
+        </View>
+      </View>
+      <T size={15} color={colors.textDim} style={{ marginTop: 10 }}>
         {m.subtitle}
-      </Body>
-      {active && route ? (
-        <Body size={14} weight="semi" color={m.color} style={{ marginTop: 8 }}>
-          {m.stops.length} stops • {fmtKm(route.distanceKm)} • ~{fmtMin(route.durationSec)} driving
-        </Body>
-      ) : null}
+      </T>
 
-      <View style={{ marginTop: 14 }}>
+      <View style={{ marginTop: 16 }}>
         {m.stops.map((id, i) => {
           const p = placeById[id];
           if (!p) return null;
           const c = placeCat[p.cat];
           const isDone = done.includes(id);
+          const last = i === m.stops.length - 1;
           return (
             <View key={id} style={styles.stop}>
               <View style={styles.rail}>
-                <View style={[styles.num, { borderColor: m.color }, isDone && { backgroundColor: m.color }]}>
-                  <Display size={13} color={isDone ? colors.ink : m.color}>
+                {!last ? <View style={styles.line} /> : null}
+                <View style={[styles.num, isDone && { backgroundColor: colors.text }]}>
+                  <T size={12} weight={700} color={isDone ? colors.ink : colors.text}>
                     {i + 1}
-                  </Display>
+                  </T>
                 </View>
-                {i < m.stops.length - 1 ? <View style={[styles.line, { backgroundColor: m.color + '55' }]} /> : null}
               </View>
-              <Pressable style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 }} onPress={() => onSelect(id)}>
+              <Pressable style={styles.stopMain} onPress={() => onSelect(id)}>
                 <Blip color={c.color} icon={c.icon} size={24} />
                 <View style={{ flex: 1 }}>
-                  <Body size={16} weight="bold" color={isDone ? colors.textMute : colors.text} style={isDone ? { textDecorationLine: 'line-through' } : undefined}>
+                  <T size={15} weight={600} color={isDone ? colors.textMute : colors.text}>
                     {p.name}
-                  </Body>
-                  <Body size={12} color={colors.textMute}>
+                  </T>
+                  <T size={12.5} color={colors.textMute}>
                     {p.area}
-                  </Body>
+                  </T>
                 </View>
               </Pressable>
               <Pressable
                 hitSlop={8}
+                accessibilityLabel={isDone ? 'Mark not done' : 'Mark done'}
                 onPress={() => {
                   tap();
                   toggleStop(id);
                 }}
-                style={[styles.box, isDone && { backgroundColor: m.color, borderColor: m.color }]}
+                style={[styles.box, isDone && styles.boxOn]}
               >
                 {isDone ? <Glyph icon="check" size={14} color={colors.ink} /> : null}
               </Pressable>
@@ -76,35 +78,35 @@ export function MissionPanel({ missionId, done, toggleStop, active, route, onSta
       </View>
 
       {complete ? (
-        <View style={[styles.reward, { borderColor: m.color }]}>
-          <Body size={12} weight="bold" color={colors.textDim} style={{ letterSpacing: 2 }}>
-            MISSION PASSED
-          </Body>
-          <Display size={26} color={m.color}>
+        <View style={styles.passed}>
+          <Label color={colors.textDim}>Mission passed</Label>
+          <H size={30} italic color={m.color}>
             {m.reward}
-          </Display>
+          </H>
         </View>
       ) : null}
 
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-        {active ? (
-          <ActionButton label="Stop mission" icon="close" color={m.color} filled={false} onPress={onStop} style={{ flex: 1 }} />
-        ) : (
-          <ActionButton label="Start mission" icon="route" color={m.color} onPress={onStart} style={{ flex: 1 }} />
-        )}
-      </View>
-      <Body size={11} color={colors.textMute} style={{ marginTop: 10 }}>
-        Tick each stop when you get there. Progress is saved on your phone.
-      </Body>
+      {active ? (
+        <Button label="End mission" variant="secondary" onPress={onStop} style={{ marginTop: 18 }} />
+      ) : (
+        <Button label="Start mission" icon="route" onPress={onStart} style={{ marginTop: 18 }} />
+      )}
+      <T size={12} color={colors.textMute} style={{ marginTop: 10, textAlign: 'center' }}>
+        Tick each stop as you reach it. Progress is saved on this phone.
+      </T>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  stop: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54 },
-  rail: { width: 28, alignItems: 'center', alignSelf: 'stretch', justifyContent: 'center' },
-  num: { width: 26, height: 26, borderRadius: 13, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.ink, zIndex: 2 },
-  line: { position: 'absolute', top: '50%', bottom: '-50%', width: 2 },
-  box: { width: 26, height: 26, borderWidth: 1.5, borderColor: colors.textMute, borderRadius: 3, alignItems: 'center', justifyContent: 'center' },
-  reward: { borderWidth: 1.5, padding: 14, marginTop: 16, alignItems: 'center', transform: [{ skewX: '-6deg' }] },
+  body: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 20 },
+  badge: { width: 44, height: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
+  stop: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56 },
+  rail: { width: 24, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  line: { position: 'absolute', top: '50%', bottom: '-50%', width: 2, backgroundColor: colors.raisedHi },
+  num: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.raisedHi, alignItems: 'center', justifyContent: 'center' },
+  stopMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  box: { width: 26, height: 26, borderRadius: 4, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
+  boxOn: { backgroundColor: colors.text, borderColor: colors.text },
+  passed: { marginTop: 18, paddingVertical: 14, alignItems: 'center', borderRadius: radius.md, backgroundColor: colors.raised },
 });
