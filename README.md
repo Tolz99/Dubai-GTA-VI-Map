@@ -8,23 +8,24 @@ A game-style map of Dubai for iPhone (Android and web also work). Every mall, la
 
 | | |
 |---|---|
-| **153 locations** | 31 malls, 14 main attractions, 31 restaurants, 11 cafés, 9 beaches, 12 parks, 8 souks, 16 thrills, 10 culture, 11 iconic hotels |
-| **180 brands / 777 store listings** | Fashion, luxury, sneakers, beauty & oud, tech, home, food chains, coffee & sweets |
+| **203 locations** | 42 malls, 14 main attractions, 53 restaurants (incl. Fat Sandwich, JVC), 17 cafés, 10 beaches, 18 parks, 9 souks, 16 thrills, 13 culture, 11 iconic hotels |
+| **181 brands / 783 store listings** | Fashion, luxury, sneakers, beauty & oud, tech, home, food chains, coffee & sweets |
 | **12 story missions** | Downtown, Old Dubai, Palm, Marina Nights, Desert Run, Hatta… with progress saved on the phone |
-| **Map** | Custom "Neon Gulf" vector style: glowing pink motorways, cyan coastline, 3D towers that turn pink as they get taller, dashed Metro lines |
+| **Map** | Custom "Neon Gulf" vector style: glowing pink motorways, cyan coastline, dashed Metro lines, and a dusk 3D city: sunset lighting, sky and haze, lit-window façades up close and a full skyline from far away |
 
 ### Features
-- **Legend sidebar** (☰) with three tabs:
-  - **Map legend**: toggle each blip category (long-press = show only that one)
+- **Legend sidebar** (Legend tab on the left edge, swipe to close) with three tabs:
+  - **Map legend**: search, Show all / Hide all, *Saved places only*, grouped categories with eye toggles and counts (long-press = show only that one)
   - **Shops**: full brand directory by category. Tap a brand to light up its malls, **+** to add it to your shopping list, **SHOW** to light up every mall in a category with store counts
   - **Missions**: 12 multi-stop story missions plus a city completion %
 - **Shopping Run**: build a list and see which malls have everything (green), which have part of it (yellow) and what's missing
-- **Briefing card** for every blip: description, tags, distance, mall store directory, "inside this mall" attractions
+- **Briefing card** for every blip, in a draggable sheet (peek / full): description, tags, distance, *open now* (where hours are verified), save ♥, nearby places, mall store directory, "inside this mall" attractions
+- **Saved places**: heart any place; saved places get a dot on the map, a section in search and a filter in the legend
 - **Set waypoint**: draws a glowing driving route with ETA (OpenStreetMap routing)
 - **Start GPS**: hands off to Apple Maps, Google Maps or Waze for turn-by-turn
-- **Search** across places, areas, tags and brands
-- **Drive mode**: turn-by-turn guidance (next maneuver, distance, street, then-step, ETA) on a follow-camera
-- 3D tilt and locate me
+- **Search** across places, areas, tags and brands, nearest first, with *Near you* and *Saved* when empty
+- **Drive mode**: turn-by-turn guidance (next maneuver, distance, street, then-step, ETA) on a smooth follow-camera, with a corner radar of nearby blips and the destination
+- **3D**: cinematic tilt, zoom +/−, compass, locate me; blips cluster at low zoom
 - **CarPlay**: designed in, see [docs/CARPLAY.md](docs/CARPLAY.md) for what's in place and what's needed
 
 ## Run it on your iPhone (5 minutes, no Mac needed)
@@ -73,13 +74,14 @@ src/
     NeonMap.tsx           WebView host (iOS/Android)
     NeonMap.web.tsx       iframe host (web)
 scripts/
-  build-map-html.mjs      bundles MapLibre + style + engine into one offline HTML (runs on install)
+  build-map-html.mjs      bundles MapLibre + style + engine + skyline into one offline HTML (runs on install)
+  build-skyline.mjs       re-extracts the far-zoom 3D skyline (towers ≥ 100 m) from OpenFreeMap tiles
   geocode.mjs             checks every place's coordinates against OpenStreetMap
 ```
 
 ### Editing data
 - **Add a store**: in `src/data/brands.ts`, add the mall id to the brand's list, e.g. `b('Zara', 'fashion', 'BIG7 BJ CW')`.
-- **Add a place**: add an entry to `src/data/places.ts` with `cat`, `lat` and `lng`, then run `npm run geocode` to check it.
+- **Add a place**: add an entry to `src/data/places.ts` with `cat`, `lat` and `lng`, then run `npm run geocode` to check it. Add `hours: [open, close]` (Dubai time, `close` > 24 = after midnight) only when verified; it powers the *open now* hint.
 
 ## Data and credits
 - Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, vector tiles by [OpenFreeMap](https://openfreemap.org) / OpenMapTiles. Routing by [OSRM](https://project-osrm.org).

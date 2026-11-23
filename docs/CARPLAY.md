@@ -9,6 +9,8 @@ Dubai Maps is designed to run on CarPlay as a **navigation app**: map on the car
 | Real turn-by-turn guidance (Apple requires this for navigation apps) | `src/lib/guidance.ts` plus OSRM steps in `src/lib/geo.ts`: maneuver type, direction, distance, street, instruction text |
 | Places grouped for list templates | `src/data/`: categories → places, brands → malls, missions → stops |
 | Phone UI that mirrors the car UI | `DriveHUD.tsx` shows the same data a `CPManeuver` / `CPTravelEstimates` needs |
+| Smooth car-screen camera | `follow` in `map.js` glides between GPS fixes (no hops) and fades buildings so the route stays readable |
+| Glanceable nearby info | `Radar.tsx` is pure SVG from the place list; the same data can feed a `CPPointOfInterestTemplate` |
 
 ## What's needed to switch it on
 1. **Apple CarPlay Navigation entitlement.** Request it at developer.apple.com/carplay with the Apple Developer account. Apple reviews the app and approval isn't guaranteed. They want real turn-by-turn, which the app now has.
