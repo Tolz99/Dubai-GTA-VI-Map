@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
   countPill: { minWidth: 30, height: 22, paddingHorizontal: 7, borderRadius: 11, backgroundColor: colors.raisedHi, alignItems: 'center', justifyContent: 'center' },
   drawer: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: colors.panel, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: colors.hairline },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12 },
-  logo: { width: 132, height: 66 },
+  logo: { width: 150, height: 67 },
   closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.raised, alignItems: 'center', justifyContent: 'center' },
   tabs: { flexDirection: 'row', marginHorizontal: 12, marginTop: 12, marginBottom: 4, backgroundColor: colors.raised, borderRadius: 6, padding: 3 },
   tab: { flex: 1, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },

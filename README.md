@@ -77,6 +77,7 @@ scripts/
   build-map-html.mjs      bundles MapLibre + style + engine + skyline into one offline HTML (runs on install)
   build-skyline.mjs       re-extracts the far-zoom 3D skyline (towers ≥ 100 m) from OpenFreeMap tiles
   geocode.mjs             checks every place's coordinates against OpenStreetMap
+  brand/                  logo + app icon source (emblem.mjs) and renderer (render.mjs → assets/*.png)
 ```
 
 ### Editing data

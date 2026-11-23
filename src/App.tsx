@@ -641,14 +641,14 @@ function Cover({ hidden }: { hidden: boolean }) {
   if (gone) return null;
   return (
     <Animated.View style={[StyleSheet.absoluteFill, styles.cover, { opacity }]} pointerEvents="none">
-      <Image source={require('../assets/logo.png')} style={{ width: 200, height: 102 }} resizeMode="contain" />
+      <Image source={require('../assets/logo.png')} style={{ width: 260, height: 116 }} resizeMode="contain" />
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   top: { position: 'absolute', left: 0, right: 0, top: 0, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  logo: { width: 112, height: 57, marginTop: -2 },
+  logo: { width: 124, height: 55, marginTop: 2 },
   controls: { gap: 8, alignItems: 'flex-end' },
   zoomGroup: { width: 44, borderRadius: radius.md, backgroundColor: colors.panel, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.hairline, overflow: 'hidden' },
   zoomBtn: { height: 44, alignItems: 'center', justifyContent: 'center' },
