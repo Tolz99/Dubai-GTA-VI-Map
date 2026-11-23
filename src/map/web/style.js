@@ -36,6 +36,18 @@ function neonStyle() {
     version: 8,
     name: 'Neon Gulf',
     glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+    // Low sunset key light from the Gulf (west-south-west) so tower faces shade like real glass at dusk.
+    light: { anchor: 'map', position: [1.3, 250, 55], color: '#FFD9B8', intensity: 0.42 },
+    // Dusk sky + distance haze; only visible when the camera is tilted (3D / drive).
+    sky: {
+      'sky-color': '#120C24',
+      'horizon-color': '#7A3270',
+      'fog-color': '#21172E',
+      'sky-horizon-blend': 0.85,
+      'horizon-fog-blend': 0.9,
+      'fog-ground-blend': 0.4,
+      'atmosphere-blend': 0,
+    },
     sources: {
       omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: '© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors' },
     },
@@ -65,24 +77,55 @@ function neonStyle() {
       { id: 'road-motorway', type: 'line', source: 'omt', 'source-layer': 'transportation', filter: ['==', ['get', 'class'], 'motorway'], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': C.motorway, 'line-width': roadWidth(1.8) } },
       { id: 'rail', type: 'line', source: 'omt', 'source-layer': 'transportation', minzoom: 10, filter: ['in', ['get', 'class'], ['literal', ['rail', 'transit']]], paint: { 'line-color': C.rail, 'line-opacity': 0.55, 'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1, 16, 3], 'line-dasharray': [2, 1.5] } },
 
-      // 3D buildings — towers glow pink as they get taller
-      { id: 'buildings', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 13,
+      // 3D buildings. Three layers so towers can wear a window façade up close:
+      //  - low-rise: matte sand-stone tones (villas < 12 m keep them up close)
+      //  - towers far away: glass/steel tones graded by height
+      //  - towers up close (z15+): procedural lit-window texture ('facade-*' images from map.js)
+      { id: 'buildings', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 14, maxzoom: 15,
+        filter: ['<', ['coalesce', ['get', 'render_height'], 5], 30],
         paint: {
-          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 5], 0, '#221D2C', 30, '#2A2437', 90, '#3B2F52', 200, '#74356E', 380, '#F2387C'],
+          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 5], 0, '#2B2631', 12, '#332C3A', 29, '#3A3346'],
           'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 5],
           'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-          'fill-extrusion-opacity': ['interpolate', ['linear'], ['zoom'], 13, 0, 14, 0.92],
+          'fill-extrusion-opacity': 0.96,
+          'fill-extrusion-vertical-gradient': true,
+        } },
+      { id: 'buildings-low', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 15,
+        filter: ['<', ['coalesce', ['get', 'render_height'], 5], 12],
+        paint: {
+          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 5], 0, '#2B2631', 12, '#332C3A', 29, '#3A3346'],
+          'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 5],
+          'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+          'fill-extrusion-opacity': 0.96,
+          'fill-extrusion-vertical-gradient': true,
+        } },
+      { id: 'buildings-tall', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 14, maxzoom: 15,
+        filter: ['>=', ['coalesce', ['get', 'render_height'], 5], 30],
+        paint: {
+          'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 5], 30, '#353A55', 90, '#3F4A72', 180, '#55508A', 300, '#8A4C8E', 500, '#D8467F'],
+          'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 5],
+          'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+          'fill-extrusion-opacity': 0.97,
+          'fill-extrusion-vertical-gradient': true,
+        } },
+      { id: 'buildings-facade', type: 'fill-extrusion', source: 'omt', 'source-layer': 'building', minzoom: 15,
+        filter: ['>=', ['coalesce', ['get', 'render_height'], 5], 12],
+        paint: {
+          'fill-extrusion-pattern': ['step', ['coalesce', ['get', 'render_height'], 5], 'facade-low', 30, 'facade-mid', 90, 'facade-high', 250, 'facade-super'],
+          'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 5],
+          'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+          'fill-extrusion-opacity': 1,
         } },
 
       // Labels
       { id: 'water-name', type: 'symbol', source: 'omt', 'source-layer': 'water_name', layout: { 'text-field': nameExpr, 'text-font': fontIt, 'text-size': 12, 'text-letter-spacing': 0.2 }, paint: { 'text-color': '#5FC9DA', 'text-halo-color': C.halo, 'text-halo-width': 1 } },
       { id: 'road-name', type: 'symbol', source: 'omt', 'source-layer': 'transportation_name', minzoom: 13, layout: { 'symbol-placement': 'line', 'text-field': nameExpr, 'text-font': fontReg, 'text-size': 11, 'text-transform': 'uppercase', 'text-letter-spacing': 0.1 }, paint: { 'text-color': C.labelDim, 'text-halo-color': C.halo, 'text-halo-width': 1.2 } },
       { id: 'place-small', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 11, filter: ['in', ['get', 'class'], ['literal', ['neighbourhood', 'quarter', 'suburb', 'hamlet', 'village']]],
-        layout: { 'text-field': nameExpr, 'text-font': font, 'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 15, 14], 'text-transform': 'uppercase', 'text-letter-spacing': 0.18, 'text-max-width': 8 },
-        paint: { 'text-color': C.label, 'text-opacity': 0.75, 'text-halo-color': C.halo, 'text-halo-width': 1.5 } },
+        layout: { 'text-field': nameExpr, 'text-font': font, 'text-size': ['interpolate', ['linear'], ['zoom'], 11, 11, 15, 16], 'text-transform': 'uppercase', 'text-letter-spacing': 0.08, 'text-max-width': 8, 'symbol-sort-key': 10 },
+        paint: { 'text-color': '#FFFFFF', 'text-opacity': ['interpolate', ['linear'], ['zoom'], 11, 0.7, 14, 0.9], 'text-halo-color': C.halo, 'text-halo-width': 2.2 } },
       { id: 'place-city', type: 'symbol', source: 'omt', 'source-layer': 'place', maxzoom: 12, filter: ['in', ['get', 'class'], ['literal', ['city', 'town']]],
-        layout: { 'text-field': nameExpr, 'text-font': font, 'text-size': 16, 'text-transform': 'uppercase', 'text-letter-spacing': 0.35 },
-        paint: { 'text-color': '#FFFFFF', 'text-halo-color': C.halo, 'text-halo-width': 2 } },
+        layout: { 'text-field': nameExpr, 'text-font': font, 'text-size': 18, 'text-transform': 'uppercase', 'text-letter-spacing': 0.25 },
+        paint: { 'text-color': '#FFFFFF', 'text-halo-color': C.halo, 'text-halo-width': 2.6 } },
     ],
   };
 }

@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { SheetScrollView } from './Sheet';
 import { MISSIONS, placeById, placeCat } from '../data';
 import { colors, radius } from '../theme/theme';
 import { Blip, Button, Glyph, H, Label, T, tap } from './ui';
@@ -17,7 +18,7 @@ export function MissionPanel({ missionId, done, toggleStop, active, onStart, onS
   const m = MISSIONS.find((x) => x.id === missionId)!;
   const complete = done.length === m.stops.length;
   return (
-    <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+    <SheetScrollView contentContainerStyle={styles.body}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingRight: 40 }}>
         <View style={[styles.badge, { backgroundColor: m.color }]}>
           <H size={20} color={colors.ink}>
@@ -94,12 +95,12 @@ export function MissionPanel({ missionId, done, toggleStop, active, onStart, onS
       <T size={12} color={colors.textMute} style={{ marginTop: 10, textAlign: 'center' }}>
         Tick each stop as you reach it. Progress is saved on this phone.
       </T>
-    </ScrollView>
+    </SheetScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 20 },
+  body: { paddingHorizontal: 20, paddingTop: 4 },
   badge: { width: 44, height: 44, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   stop: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56 },
   rail: { width: 24, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },

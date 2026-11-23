@@ -4,6 +4,8 @@ export interface MapHandle {
 
 export type MapEvent =
   | { type: 'ready' }
+  | { type: 'idle' }
+  | { type: 'userPan' }
   | { type: 'select'; id: string }
   | { type: 'mapTap' }
   | { type: 'bearing'; bearing: number };

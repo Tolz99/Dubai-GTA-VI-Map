@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef, type ComponentType } from 'react';
+import { forwardRef, memo, useImperativeHandle, useRef, type ComponentType } from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { MAP_HTML } from './mapHtml.generated';
@@ -10,12 +10,21 @@ import type { MapEvent, MapHandle } from './types';
 const WV = WebView as unknown as ComponentType<any>;
 
 // Native (iOS / Android): MapLibre GL running inside a WebView.
-export const NeonMap = forwardRef<MapHandle, { onEvent: (e: MapEvent) => void }>(function NeonMap({ onEvent }, ref) {
+export const NeonMap = memo(
+  forwardRef<MapHandle, { onEvent: (e: MapEvent) => void }>(function NeonMap({ onEvent }, ref) {
   const web = useRef<{ injectJavaScript(js: string): void; reload(): void } | null>(null);
+  // Messages posted in the same JS tick go across the bridge as one injectJavaScript call.
+  const queue = useRef<Record<string, unknown>[]>([]);
   useImperativeHandle(ref, () => ({
     post(msg) {
-      const s = JSON.stringify(JSON.stringify(msg));
-      web.current?.injectJavaScript(`window.NEON && window.NEON.receive(${s}); true;`);
+      queue.current.push(msg);
+      if (queue.current.length > 1) return;
+      setTimeout(() => {
+        const batch = queue.current;
+        queue.current = [];
+        const s = JSON.stringify(JSON.stringify(batch.length === 1 ? batch[0] : batch));
+        web.current?.injectJavaScript(`window.NEON && window.NEON.receive(${s}); true;`);
+      }, 0);
     },
   }));
   return (
@@ -42,6 +51,7 @@ export const NeonMap = forwardRef<MapHandle, { onEvent: (e: MapEvent) => void }>
       onContentProcessDidTerminate={() => web.current?.reload()}
     />
   );
-});
+  }),
+);
 
 const styles = StyleSheet.create({ map: { flex: 1, backgroundColor: '#170E2E' } });

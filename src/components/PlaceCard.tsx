@@ -1,22 +1,29 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { BRAND_CATEGORIES, brandCat, brandsByMall, placeById, placeCat, placesInMall, type BrandCategory, type Place } from '../data';
 import { distanceKm, fmtKm, fmtMin, type RouteResult } from '../lib/geo';
+import { openState } from '../lib/hours';
 import { openNavigation, type NavApp } from '../lib/navigate';
+import { nearest } from '../lib/search';
 import { colors, radius } from '../theme/theme';
-import { Blip, Button, Chip, Divider, Glyph, H, Label, T, tap } from './ui';
+import { SheetScrollView } from './Sheet';
+import { Blip, Button, Chip, Divider, Glyph, H, Label, T, tap, thud } from './ui';
 
 interface Props {
   place: Place;
   userLoc: { lat: number; lng: number } | null;
   route: (RouteResult & { targetId: string }) | null;
   routing: boolean;
+  /** The router couldn't be reached and the route is a straight-line estimate. */
+  routeError?: boolean;
   onWaypoint: () => void;
   onClearRoute: () => void;
   onDrive: () => void;
   shoppingList: string[];
   toggleShopping: (id: string) => void;
   onSelect: (id: string) => void;
+  isFav: boolean;
+  toggleFav: (id: string) => void;
 }
 
 const NAV_APPS: [NavApp, string][] = [
@@ -25,25 +32,53 @@ const NAV_APPS: [NavApp, string][] = [
   ['waze', 'Waze'],
 ];
 
-export function PlaceCard({ place, userLoc, route, routing, onWaypoint, onClearRoute, onDrive, shoppingList, toggleShopping, onSelect }: Props) {
+export const PlaceCard = memo(function PlaceCard({ place, userLoc, route, routing, routeError, onWaypoint, onClearRoute, onDrive, shoppingList, toggleShopping, onSelect, isFav, toggleFav }: Props) {
   const cat = placeCat[place.cat];
   const myRoute = route && route.targetId === place.id ? route : null;
   const dist = userLoc ? distanceKm(userLoc.lat, userLoc.lng, place.lat, place.lng) : null;
   const parent = place.inMall ? placeById[place.inMall] : null;
   const meta = [cat.short, place.area, place.price ? '$'.repeat(place.price) : null, dist != null ? fmtKm(dist) : null].filter(Boolean).join('  ·  ');
+  const open = openState(place);
+  const near = useMemo(() => nearest(place, 4, place.id, (p) => p.inMall !== place.id && p.id !== place.inMall), [place]);
 
   return (
-    <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+    <SheetScrollView contentContainerStyle={styles.body}>
       <View style={styles.head}>
-        <Blip color={cat.color} icon={cat.icon} size={34} />
+        <Blip color={cat.color} icon={cat.icon} size={38} ring={place.featured} />
         <View style={{ flex: 1, paddingRight: 36 }}>
           <T size={12} weight={600} color={colors.textDim} numberOfLines={1}>
             {meta}
           </T>
-          <H size={28} numberOfLines={2} style={{ marginTop: 2 }}>
+          <H size={28} numberOfLines={2} style={{ marginTop: 2 }} accessibilityRole="header">
             {place.name}
           </H>
         </View>
+      </View>
+
+      <View style={styles.quickRow}>
+        <Pressable
+          onPress={() => {
+            thud();
+            toggleFav(place.id);
+          }}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isFav }}
+          accessibilityLabel={isFav ? `Remove ${place.name} from saved` : `Save ${place.name}`}
+          style={({ pressed }) => [styles.saveBtn, isFav && styles.saveBtnOn, pressed && { opacity: 0.7 }]}
+        >
+          <Glyph icon={isFav ? 'heart' : 'heartOutline'} size={16} color={isFav ? colors.ink : '#FF4D7A'} />
+          <T size={13} weight={600} color={isFav ? colors.ink : colors.text}>
+            {isFav ? 'Saved' : 'Save'}
+          </T>
+        </Pressable>
+        {open ? (
+          <View style={[styles.openPill, { borderColor: open.open ? colors.green : colors.hairline }]}>
+            <View style={[styles.openDot, { backgroundColor: open.open ? colors.green : colors.danger }]} />
+            <T size={12.5} weight={600} color={open.open ? colors.text : colors.textDim}>
+              {open.label}
+            </T>
+          </View>
+        ) : null}
       </View>
 
       <T size={15} color={colors.textDim} style={{ marginTop: 12 }}>
@@ -92,6 +127,11 @@ export function PlaceCard({ place, userLoc, route, routing, onWaypoint, onClearR
               </T>
             </Pressable>
           </View>
+          {routeError ? (
+            <T size={12.5} color={colors.yellow} style={{ marginTop: 8 }}>
+              Couldn’t reach the router, so this is a straight-line estimate. Check your connection, or open it in Apple Maps below.
+            </T>
+          ) : null}
           <Button label="Drive" icon="car" onPress={onDrive} style={{ marginTop: 12 }} />
         </View>
       ) : (
@@ -117,9 +157,35 @@ export function PlaceCard({ place, userLoc, route, routing, onWaypoint, onClearR
       </View>
 
       {place.cat === 'mall' ? <MallDirectory mallId={place.id} shoppingList={shoppingList} toggleShopping={toggleShopping} onSelect={onSelect} /> : null}
-    </ScrollView>
+
+      <View style={{ marginTop: 22 }}>
+        <Label style={{ marginBottom: 4 }}>Nearby</Label>
+        {near.map(({ place: p, km }, i) => {
+          const c = placeCat[p.cat];
+          return (
+            <View key={p.id}>
+              {i > 0 ? <Divider style={{ marginLeft: 38 }} /> : null}
+              <Pressable onPress={() => onSelect(p.id)} style={({ pressed }) => [styles.insideRow, pressed && { opacity: 0.6 }]} accessibilityRole="button">
+                <Blip color={c.color} icon={c.icon} size={24} />
+                <View style={{ flex: 1 }}>
+                  <T size={15} weight={500} numberOfLines={1}>
+                    {p.name}
+                  </T>
+                  <T size={12} color={colors.textMute} numberOfLines={1}>
+                    {c.label}
+                  </T>
+                </View>
+                <T size={12.5} color={colors.textMute}>
+                  {fmtKm(km ?? 0)}
+                </T>
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+    </SheetScrollView>
   );
-}
+});
 
 function MallDirectory({ mallId, shoppingList, toggleShopping, onSelect }: { mallId: string; shoppingList: string[]; toggleShopping: (id: string) => void; onSelect: (id: string) => void }) {
   const brands = brandsByMall[mallId] || [];
@@ -190,8 +256,13 @@ function MallDirectory({ mallId, shoppingList, toggleShopping, onSelect }: { mal
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 20 },
+  body: { paddingHorizontal: 20, paddingTop: 4 },
   head: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  quickRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: colors.raised },
+  saveBtnOn: { backgroundColor: colors.text },
+  openPill: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1 },
+  openDot: { width: 7, height: 7, borderRadius: 4 },
   parent: { flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 12, alignSelf: 'flex-start', backgroundColor: colors.raised, paddingHorizontal: 10, height: 34, borderRadius: radius.sm },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
   tag: { backgroundColor: colors.raised, paddingHorizontal: 9, height: 26, justifyContent: 'center', borderRadius: radius.sm },

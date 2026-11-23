@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { SheetScrollView } from './Sheet';
 import { BRANDS, brandById, brandCat } from '../data';
 import { fmtKm } from '../lib/geo';
 import { FULL, PARTIAL, rankMalls } from '../lib/shopping';
@@ -27,7 +28,7 @@ export function ShoppingPanel({ list, toggle, clear, userLoc, onPickMall }: Prop
   const full = results.filter((r) => r.missing.length === 0);
 
   return (
-    <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <SheetScrollView contentContainerStyle={styles.body}>
       <H size={28} style={{ paddingRight: 40 }}>Shopping run</H>
       <T size={14} color={colors.textDim} style={{ marginTop: 2 }}>
         Add what you’re shopping for. Malls that carry it light up on the map.
@@ -151,14 +152,14 @@ export function ShoppingPanel({ list, toggle, clear, userLoc, onPickMall }: Prop
           )}
         </>
       ) : null}
-    </ScrollView>
+    </SheetScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 20 },
+  body: { paddingHorizontal: 20, paddingTop: 4 },
   input: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16, height: 46, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.raised },
-  inputText: { flex: 1, color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 16, height: 46 },
+  inputText: { flex: 1, color: colors.text, fontFamily: fonts.bodyMedium, fontSize: 16, height: 46, outlineWidth: 0 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   sugg: { flexDirection: 'row', alignItems: 'center', gap: 7, height: 32, paddingHorizontal: 10, borderRadius: radius.sm, backgroundColor: colors.raised },
   dot: { width: 6, height: 6, borderRadius: 3 },

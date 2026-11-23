@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import type { ReactNode } from 'react';
+import { memo, type ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ICON_PATHS, type IconName } from '../data/categories';
@@ -8,19 +8,44 @@ import { colors, fonts, radius } from '../theme/theme';
 export function tap() {
   if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
 }
+/** Heavier tick for confirmations (waypoint set, favourite added, mission passed). */
+export function thud() {
+  if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+}
+export function success() {
+  if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+}
 
-/** Map blip: colour silhouette with a thick dark outline — identical to the map's rendering. */
-export function Blip({ color, icon, size = 26, dim }: { color: string; icon: IconName; size?: number; dim?: boolean }) {
+/** Map blip: rounded colour tile, dark glyph, dark outline. Same drawing as the map (map.js makeBlip). */
+export const Blip = memo(function Blip({ color, icon, size = 26, dim, ring }: { color: string; icon: IconName; size?: number; dim?: boolean; ring?: boolean }) {
   const d = ICON_PATHS[icon];
+  const g = size * 0.62;
   return (
-    <View style={{ width: size, height: size, opacity: dim ? 0.3 : 1 }}>
-      <Svg width={size} height={size} viewBox="-3.4 -3.4 30.8 30.8">
-        <Path d={d} fill="none" stroke="#08060C" strokeWidth={3.6} strokeLinejoin="round" strokeLinecap="round" />
-        <Path d={d} fill={color} fillRule="evenodd" />
-      </Svg>
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.28,
+        backgroundColor: INK,
+        padding: Math.max(1.5, size * 0.07),
+        opacity: dim ? 0.3 : 1,
+        borderWidth: ring ? 1.5 : 0,
+        borderColor: colors.text,
+      }}
+      importantForAccessibility="no-hide-descendants"
+    >
+      <View style={{ flex: 1, borderRadius: size * 0.22, backgroundColor: color, alignItems: 'center', justifyContent: 'center' }}>
+        <Svg width={g} height={g} viewBox="0 0 24 24">
+          <Path d={d} fill={INK} fillRule="evenodd" />
+        </Svg>
+      </View>
     </View>
   );
-}
+});
+
+const INK = '#08060C';
+/** Cap Dynamic Type so big accessibility sizes grow text without breaking map overlays. */
+export const MAX_FONT_SCALE = 1.35;
 
 const UI_ICONS = {
   menu: 'M3 5.5h18v2H3zm0 5.5h18v2H3zm0 5.5h18v2H3z',
@@ -40,6 +65,12 @@ const UI_ICONS = {
   uturn: 'M8 21V9a5 5 0 0110 0v6h3l-5 6-5-6h3V9a1 1 0 00-2 0v12z',
   roundabout: 'M12 2l5 5h-3.5v2.2a5 5 0 11-3 0V7H7zm0 9a2.5 2.5 0 100 5 2.5 2.5 0 000-5z',
   flag: 'M5 2h2v20H5zm3 1h11l-2.5 4L19 11H8z',
+  heart: 'M12 21.2l-1.4-1.3C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 2.8 7.5 2.8c1.7 0 3.4.8 4.5 2.1 1.1-1.3 2.8-2.1 4.5-2.1 3.1 0 5.5 2.4 5.5 5.5 0 3.8-3.4 6.9-8.6 11.6z',
+  heartOutline: 'M12 21.2l-1.4-1.3C5.4 15.2 2 12.1 2 8.3 2 5.2 4.4 2.8 7.5 2.8c1.7 0 3.4.8 4.5 2.1 1.1-1.3 2.8-2.1 4.5-2.1 3.1 0 5.5 2.4 5.5 5.5 0 3.8-3.4 6.9-8.6 11.6zm0-2.7c4.6-4.2 7.8-7.1 7.8-10.2a3.3 3.3 0 00-3.3-3.3c-1.4 0-2.7.9-3.2 2.1h-2.6c-.5-1.2-1.8-2.1-3.2-2.1a3.3 3.3 0 00-3.3 3.3c0 3.1 3.2 6 7.8 10.2z',
+  eye: 'M12 5c5 0 9 4.5 10.5 7-1.5 2.5-5.5 7-10.5 7S3 14.5 1.5 12C3 9.5 7 5 12 5zm0 3a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 110 4 2 2 0 010-4z',
+  eyeOff: 'M3.3 2.3l18.4 18.4-1.4 1.4-3.4-3.4A11 11 0 0112 19C7 19 3 14.5 1.5 12a18 18 0 014.2-4.9L1.9 3.7zm4 6.2A15 15 0 003.9 12c1.5 2.1 4.5 5 8.1 5 1.2 0 2.3-.3 3.3-.8l-1.7-1.7a4 4 0 01-5.1-5.1zM12 5c5 0 9 4.5 10.5 7a17 17 0 01-3.1 3.9l-2.5-2.5A4 4 0 0010.6 8L8.4 5.8A9.5 9.5 0 0112 5z',
+  minus: 'M4 11h16v2H4z',
+  compass: 'M12 2l4 10h-8zm0 20l-4-10h8z',
 } as const;
 export type UIIcon = keyof typeof UI_ICONS;
 
@@ -53,10 +84,12 @@ export function Glyph({ icon, size = 20, color = colors.text }: { icon: UIIcon |
 }
 
 /** Condensed uppercase heading. */
-export function H({ children, size = 20, color = colors.text, italic, style, numberOfLines }: { children: ReactNode; size?: number; color?: string; italic?: boolean; style?: StyleProp<TextStyle>; numberOfLines?: number }) {
+export function H({ children, size = 20, color = colors.text, italic, style, numberOfLines, accessibilityRole }: { children: ReactNode; size?: number; color?: string; italic?: boolean; style?: StyleProp<TextStyle>; numberOfLines?: number; accessibilityRole?: 'header' }) {
   return (
     <Text
+      accessibilityRole={accessibilityRole}
       numberOfLines={numberOfLines}
+      maxFontSizeMultiplier={MAX_FONT_SCALE}
       style={[{ fontFamily: italic ? fonts.headingItalic : fonts.heading, fontSize: size, lineHeight: Math.round(size * 1.08), color, textTransform: 'uppercase', letterSpacing: 0.3 }, style]}
     >
       {children}
@@ -68,7 +101,7 @@ export function H({ children, size = 20, color = colors.text, italic, style, num
 export function T({ children, size = 15, color = colors.text, weight = 400, style, numberOfLines }: { children: ReactNode; size?: number; color?: string; weight?: 400 | 500 | 600 | 700; style?: StyleProp<TextStyle>; numberOfLines?: number }) {
   const fontFamily = weight === 700 ? fonts.bodyBold : weight === 600 ? fonts.bodySemi : weight === 500 ? fonts.bodyMedium : fonts.body;
   return (
-    <Text numberOfLines={numberOfLines} style={[{ fontFamily, fontSize: size, lineHeight: Math.round(size * 1.38), color }, style]}>
+    <Text numberOfLines={numberOfLines} maxFontSizeMultiplier={MAX_FONT_SCALE} style={[{ fontFamily, fontSize: size, lineHeight: Math.round(size * 1.38), color }, style]}>
       {children}
     </Text>
   );
@@ -76,13 +109,17 @@ export function T({ children, size = 15, color = colors.text, weight = 400, styl
 
 /** Small tracked label used for section headers. */
 export function Label({ children, color = colors.textMute, style }: { children: ReactNode; color?: string; style?: StyleProp<TextStyle> }) {
-  return <Text style={[{ fontFamily: fonts.bodySemi, fontSize: 11, letterSpacing: 1.2, color, textTransform: 'uppercase' }, style]}>{children}</Text>;
+  return <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={[{ fontFamily: fonts.bodySemi, fontSize: 11, letterSpacing: 1.2, color, textTransform: 'uppercase' }, style]}>{children}</Text>;
 }
 
 /** Square translucent map control. */
-export function MapButton({ onPress, children, active, badge, style }: { onPress: () => void; children: ReactNode; active?: boolean; badge?: number; style?: StyleProp<ViewStyle> }) {
+export function MapButton({ onPress, children, active, badge, style, label }: { onPress: () => void; children: ReactNode; active?: boolean; badge?: number; style?: StyleProp<ViewStyle>; label: string }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={badge ? `${label}, ${badge}` : label}
+      accessibilityState={active != null ? { selected: active } : undefined}
+      hitSlop={4}
       onPress={() => {
         tap();
         onPress();
@@ -92,7 +129,7 @@ export function MapButton({ onPress, children, active, badge, style }: { onPress
       {children}
       {badge ? (
         <View style={s.badge}>
-          <Text style={s.badgeText}>{badge}</Text>
+          <Text maxFontSizeMultiplier={1.2} style={s.badgeText}>{badge}</Text>
         </View>
       ) : null}
     </Pressable>
@@ -106,6 +143,8 @@ export function Button({ label, onPress, variant = 'primary', icon, tint = color
   const fg = variant === 'secondary' ? colors.text : colors.ink;
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
       onPress={() => {
         tap();
         onPress();
@@ -120,7 +159,7 @@ export function Button({ label, onPress, variant = 'primary', icon, tint = color
       ]}
     >
       {icon ? <Glyph icon={icon} size={compact ? 16 : 18} color={fg} /> : null}
-      <Text style={[s.btnText, compact && { fontSize: 15 }, { color: fg }]} numberOfLines={1}>
+      <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={[s.btnText, compact && { fontSize: 15 }, { color: fg }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -138,10 +177,13 @@ export function Chip({ label, color, onPress, active }: { label: string; color: 
             }
           : undefined
       }
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityLabel={label}
+      accessibilityState={active != null ? { selected: active } : undefined}
       style={({ pressed }) => [s.chip, active && s.chipActive, pressed && s.pressed]}
     >
       <View style={[s.chipDot, { backgroundColor: color }]} />
-      <Text style={[s.chipText, active && { color: colors.ink }]} numberOfLines={1}>
+      <Text maxFontSizeMultiplier={MAX_FONT_SCALE} style={[s.chipText, active && { color: colors.ink }]} numberOfLines={1}>
         {label}
       </Text>
       {active ? <Glyph icon="check" size={13} color={colors.ink} /> : null}
