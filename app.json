@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "NEON DXB",
+    "slug": "neon-dxb",
+    "scheme": "neondxb",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0618",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0618"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.neondxb.map",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "NEON DXB shows your position on the map and routes you to malls, missions and places.",
+        "LSApplicationQueriesSchemes": ["comgooglemaps", "waze"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.neondxb.map",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0618",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "NEON DXB"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "NEON DXB shows your position on the map and routes you to malls, missions and places."
+        }
+      ]
+    ]
+  }
+}
